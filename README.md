@@ -1,2 +1,2 @@
 # socket-multi-user
-Base for creating communal shared-screen experiences, joined and controlled by smartphones.
+Base for creating communal shared-screen experiences, controlled by smartphones.
