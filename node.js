@@ -10,6 +10,8 @@ var puid = new Puid(true);
 
 var CLIENT_CONTROLLER = "client_controller";
 var CLIENT_SHARED_SCREEN = "client_shared_screen";
+var sharedScreenSID;
+var sharedScreenConnected = false;
 
 var portNumber = 3000;
 app.set('port', portNumber);
@@ -38,9 +40,6 @@ app.get('/', function (request, response){
 
         response.sendFile(__dirname + '/screen.html');
 
-        //TODO: Detect IP address of server and use to create QR code.
-        //see http://goo.gl/q4eDo
-
     }
 
 });
@@ -63,19 +62,19 @@ io.on('connection', function(socket){
 
         usertype = data.usertype;
         nickname = data.nickname;
-        usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
+        usercolor = data.usercolor;
 
         if (usertype == CLIENT_SHARED_SCREEN) {
 
-            screenSocket =  socket.id;
+            sharedScreenSID =  socket.id;
+            sharedScreenConnected = true;
 
-        } else if (usertype == CLIENT_CONTROLLER) {
+        } else if (usertype == CLIENT_CONTROLLER && sharedScreenConnected) {
 
-            if (screenSocket) {
-
-                io.sockets.connected[screenSocket].emit('new-player', {'nickname':nickname, 'userid':userid, 'usercolor':usercolor} );
-
-            }
+            io.sockets.connected[sharedScreenSID].emit('add-player', {  'nickname': nickname,
+                                                                        'userid': userid,
+                                                                        'usercolor': usercolor
+                                                                    });
 
         }
 
@@ -86,14 +85,37 @@ io.on('connection', function(socket){
 
         console.log('User has disconnected:', usertype, nickname, userid);
 
-        if (usertype == CLIENT_CONTROLLER) {
+        if (usertype == CLIENT_CONTROLLER && sharedScreenConnected) {
 
-            io.sockets.connected[screenSocket].emit('remove-player', {'nickname':nickname, 'userid':userid} );
+            io.sockets.connected[sharedScreenSID].emit('remove-player', {   'nickname':nickname,
+                                                                            'userid':userid
+                                                                        });
+
+        } else if (usertype == CLIENT_SHARED_SCREEN) {
+
+            sharedScreenConnected = false;
 
         }
 
     });
 
+    //Controller vector update
+    socket.on('control-vector', function(data){
+
+        if (!sharedScreenConnected) return;
+        data.userid = userid;
+        io.sockets.connected[sharedScreenSID].emit('control-vector', data );
+
+    });
+
+    //Controller tap
+    socket.on('control-tap', function(data){
+
+        if (!sharedScreenConnected) return;
+        data.userid = userid;
+        io.sockets.connected[sharedScreenSID].emit('control-tap', data );
+
+    });
 
 });
 

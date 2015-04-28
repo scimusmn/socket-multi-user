@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   </head>
 
-  <!-- Init Socket.IO -->
+  <!-- CSS -->
+  <link rel="stylesheet" type="text/css" href="../css/controller.css">
+
+  <!-- JS -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="../js/VectorTouchController.js"></script>
 
   <script>
 
@@ -15,9 +19,23 @@
 
       var socket = io();
 
-      var nickname = 'jonny';
+      promptForNickname();
 
-      socket.emit('register', {'usertype':'client_controller', 'nickname':nickname});
+      function promptForNickname() {
+
+        var nickname = prompt("Enter nickname.", '');
+        var usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);;
+
+        socket.emit('register', { 'usertype': 'client_controller',
+                                  'nickname': nickname,
+                                  'usercolor': usercolor
+                                });
+
+
+      }
+
+      var touchControl = new VectorTouchController(socket);
+      touchControl.enable();
 
     });
 

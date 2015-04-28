@@ -4,25 +4,48 @@
     <title>Shared Screen</title>
   </head>
 
-  <!-- Init Socket.IO -->
+  <!-- CSS -->
+  <link rel="stylesheet" type="text/css" href="../css/screen.css">
+  <link rel="stylesheet" type="text/css" href="../css/game.css">
+
+  <!-- JS -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="js/Game.js"></script>
 
   <script>
 
     $(document).ready(function(){
 
       var socket = io();
+      var game = new Game();
 
-      socket.emit('register', {'usertype':'client_shared_screen'});
+      //Let Socket know this is the shared screen client
+      socket.emit('register', {'usertype':'client_shared_screen'} );
+
+      //Forward socket events into game
+      socket.on('add-player', function(data){
+        game.addPlayer(data);
+      });
+
+      socket.on('remove-player', function(data){
+        game.removePlayer(data);
+      });
+
+      socket.on('control-vector', function(data){
+        game.controlVector(data);
+      });
+
+      socket.on('control-tap', function(data){
+        game.controlTap(data);
+      });
 
     });
-
 
   </script>
 
   <body>
-    Shared screen
+    Shared game screen
   </body>
 
 </html>
