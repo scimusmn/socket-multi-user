@@ -1,0 +1,11 @@
+{
+  "name": "socket-multi-user",
+  "version": "0.0.1",
+  "description": "socketio based multi user interactives",
+  "dependencies": {
+    "express": "^4.9.8",
+    "puid": "^1.0.5",
+    "socket.io": "^1.1.0",
+    "ua-parser": "^0.3.3"
+  }
+}
