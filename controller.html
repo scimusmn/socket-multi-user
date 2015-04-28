@@ -15,6 +15,10 @@
 
       var socket = io();
 
+      var nickname = 'jonny';
+
+      socket.emit('register', {'usertype':'client_controller', 'nickname':nickname});
+
     });
 
   </script>

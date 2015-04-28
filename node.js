@@ -6,7 +6,10 @@ var io = require('socket.io')(http);
 var path = require('path');
 var uaParser = require('ua-parser');
 var Puid = require('puid');
-var puid = new Puid();
+var puid = new Puid(true);
+
+var CLIENT_CONTROLLER = "client_controller";
+var CLIENT_SHARED_SCREEN = "client_shared_screen";
 
 var portNumber = 3000;
 app.set('port', portNumber);
@@ -42,12 +45,55 @@ app.get('/', function (request, response){
 
 });
 
-//Handle Socket.io connections
+//Socket.io connections
 io.on('connection', function(socket){
 
-    //Set variables for this client
+    //Set up variables unique to this client
     var userid = puid.generate();
-    console.log('new userid: ' + userid + '.');
+    var usertype;
+    var nickname;
+    var usercolor;
+
+    console.log('User has connected: ', userid);
+
+    //User registered
+    socket.on("register", function(data) {
+
+        console.log("User has registered:", data.usertype, data.nickname);
+
+        usertype = data.usertype;
+        nickname = data.nickname;
+        usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
+
+        if (usertype == CLIENT_SHARED_SCREEN) {
+
+            screenSocket =  socket.id;
+
+        } else if (usertype == CLIENT_CONTROLLER) {
+
+            if (screenSocket) {
+
+                io.sockets.connected[screenSocket].emit('new-player', {'nickname':nickname, 'userid':userid, 'usercolor':usercolor} );
+
+            }
+
+        }
+
+    });
+
+    //User disconnected
+    socket.on('disconnect', function(){
+
+        console.log('User has disconnected:', usertype, nickname, userid);
+
+        if (usertype == CLIENT_CONTROLLER) {
+
+            io.sockets.connected[screenSocket].emit('remove-player', {'nickname':nickname, 'userid':userid} );
+
+        }
+
+    });
+
 
 });
 
