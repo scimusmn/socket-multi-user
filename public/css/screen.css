@@ -1,0 +1,19 @@
+* {
+    margin: 0; padding: 0; box-sizing: border-box;
+}
+
+body {
+    color:#acaaad;
+    font: 13px Helvetica, Arial;
+    background: #222
+}
+
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#messages li {
+    padding: 5px 10px;
+}

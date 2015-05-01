@@ -24,7 +24,7 @@
       function promptForNickname() {
 
         var nickname = prompt("Enter nickname.", '');
-        var usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);;
+        var usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
 
         socket.emit('register', { 'usertype': 'client_controller',
                                   'nickname': nickname,

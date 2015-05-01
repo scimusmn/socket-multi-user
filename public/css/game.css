@@ -1,0 +1,28 @@
+.flyer{
+    position: absolute;
+    z-index: 2;
+}
+.flyer img{
+    position: absolute;
+    z-index: 2;
+}
+.puff{
+    position: absolute;
+    z-index: 0;
+}
+.points{
+    position: absolute;
+    z-index: 2;
+}
+.asteroid,
+.asteroid img{
+    position: absolute;
+    z-index: 1;
+}
+#pick{
+    position: absolute;
+    z-index: 1;
+    top:6px;
+    left:-4px;
+    opacity:0;
+}
