@@ -27,6 +27,44 @@ function VectorTouchController(socket) {
 
     }
 
+    //TEMP - TOUCGHLOW AND ARROW
+    var $arrow = $("#arrow");
+    $arrow.css('left',halfWidth + 'px');
+    $arrow.css('top',halfHeight + 'px');
+
+    $('body').touchglow({
+
+            touchColor: "#fff",
+            fadeInDuration: 25,
+            fadeOutDuration: 250,
+
+        onUpdatePosition: function(x,y){
+
+            var angle = Math.atan2(x - halfWidth, - (y - halfHeight) )*(180/Math.PI);
+            $arrow.css({ "-webkit-transform": 'rotate(' + angle + 'deg)'});
+            $arrow.css({ '-moz-transform': 'rotate(' + angle + 'deg)'});
+
+            //Temp
+            $arrow.css('left', x + 'px');
+            $arrow.css('top', y + 'px');
+
+            //Temp
+            $("#startx").css('left', halfWidth + 'px');
+            $("#startx").css('top', halfHeight + 'px');
+
+        },
+        onFadeIn: function(fadeDur){
+            $arrow.stop().fadeTo(fadeDur, 1);
+            $('#instruct').stop().fadeTo(fadeDur, 0.2);
+        },
+        onFadeOut: function(fadeDur){
+            $arrow.stop().fadeTo(fadeDur, 0.3);
+            $('#instruct').stop().fadeTo(fadeDur, 1);
+        }
+
+    });
+    //End TEMP
+
     function touchEvent ( event ) {
 
         if (event.type == 'touchmove') {
@@ -35,6 +73,11 @@ function VectorTouchController(socket) {
             ty = event.touches[0].pageY;
 
             inputMove(tx, ty);
+
+        } else if ( event.type == 'touchstart' ) {
+
+            halfWidth = event.touches[0].pageX;
+            halfHeight = event.touches[0].pageY;
 
         } else if ( event.touches.length == 0 ) {
 

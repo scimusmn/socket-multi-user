@@ -54,6 +54,7 @@ io.on('connection', function(socket){
     var usercolor;
 
     console.log('User has connected: ', userid);
+    console.log('connection :', socket.request.connection._peername);
 
     //User registered
     socket.on("register", function(data) {

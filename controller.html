@@ -12,6 +12,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="../js/VectorTouchController.js"></script>
+  <script src="js/vendor/jquery.touchglow.js"></script>
 
   <script>
 
@@ -31,7 +32,6 @@
                                   'usercolor': usercolor
                                 });
 
-
       }
 
       var touchControl = new VectorTouchController(socket);
@@ -42,7 +42,14 @@
   </script>
 
   <body>
-    Controller
+    <br/><h3 id="instruct" style="pointer-events:none;">Touch to control.</h3>
+    <div id="arrow" style="position: absolute; display:none;">
+      <div id="arrowinner" style="position: absolute; width: 55px; height: 200px; left: -28px; top: -100px;">
+      <!-- <div id="arrowinner" style="position: absolute; width: 55px; height: 318px; left: -28px; top: -159px;"> -->
+        <img src="img/arrow-50.png" />
+      </div>
+    </div>
+    <p id="startx" style="position: absolute;">x</p>
   </body>
 
 </html>

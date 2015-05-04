@@ -2,6 +2,8 @@ function Game() {
 
     var currentFrameRequest = 0;
     var flyers = [];
+    var asteroids = [];
+    var droppers = [];
     var stageDiv = {};
     var stageBounds = {};
 
@@ -20,6 +22,20 @@ function Game() {
 
         //Start game loop
         currentFrameRequest = window.requestAnimationFrame(gameLoop);
+
+        //Begin releasing asteroids
+        setInterval(function(){
+
+            if (flyers.length>0) releaseAsteroid();
+
+        }, 5000);
+
+        //Begin updating scoreboard
+        setInterval(function(){
+
+            if (flyers.length>0) updateScoreboard();
+
+        }, 1000);
 
     }
 
@@ -57,6 +73,7 @@ function Game() {
                             'nickname':data.nickname,
                             'color':data.usercolor,
                             'count':0,
+                            'score':0,
                             'gas':false,
                             'dir':1,
                             'x':startX,
@@ -98,8 +115,8 @@ function Game() {
         } else {
             //Apply acceleration
             f.gas = true;
-            f.ax = data.magnitude * Math.cos(data.angle) * 0.5;
-            f.ay = data.magnitude * Math.sin(data.angle) * 0.5;
+            f.ax = data.magnitude * Math.cos(data.angle) * 0.6;
+            f.ay = data.magnitude * Math.sin(data.angle) * 0.6;
         }
 
     }
@@ -113,6 +130,12 @@ function Game() {
         //Swing pick-ax
         TweenLite.set( $( f.div ).children('#pick'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
         TweenMax.to( $( f.div ).children('#pick'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
+
+        //Mine for gold
+        f.score += mineForGold(f.x+10, f.y+25, f.color);
+
+        //Drop mine
+        // releaseDropper(f);
 
     }
 
@@ -144,11 +167,15 @@ function Game() {
             flyer.vy += flyer.ay;
 
             //Apply Gravity
-            flyer.vy += 0.025;
+            if (flyer.vy < 0) {
+                flyer.vy += 0.06;
+            } else {
+                flyer.vy += 0.006;
+            }
 
             //Govern speed
-            flyer.vx = clamp(flyer.vx, -6.5, 6.5);
-            flyer.vy = clamp(flyer.vy, -6.5, 6.5);
+            flyer.vx = clamp(flyer.vx, -4, 4);
+            flyer.vy = clamp(flyer.vy, -4, 4);
 
             //Move based on velocity
             flyer.x += flyer.vx;
@@ -187,26 +214,145 @@ function Game() {
 
     }
 
+    function mineForGold(mineX, mineY) {
+
+        var goldMined = 0;
+
+        for( a=asteroids.length-1; a>=0; a--) {
+
+            var ast = asteroids[a];
+            var aL = parseInt( $(ast.div).css('left') ) + (ast.diam*.5);
+            var aT = parseInt( $(ast.div).css('top') ) + (ast.diam*.5);
+
+            if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1.25 ) {
+
+                //Successful strike
+                goldMined = 5;
+                ast.gold -= goldMined;
+
+                if (ast.gold <= 0){
+
+                    //hide gold
+                    $( ast.goldDiv ).hide();
+
+                    //remove from stage
+                    TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:2, onComplete: removeElement, onCompleteParams:[ast.div] } );
+
+                    //remove from game loop
+                    asteroids.splice(a,1);
+
+                }
+
+                releasePoints(goldMined, '#eee21c', aL - 10, aT - 15); //uncomment to always gold
+                return goldMined;
+
+            }
+        }
+
+        return goldMined;
+
+    }
+
+    function updateScoreboard() {
+
+        //Sort by score
+        flyers.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score) } );
+
+        //TEMP (shouldn't reach outside game stage)
+        $('#messages').empty();
+        for (var i = 0; i < flyers.length; i++) {
+            $('#messages').append($('<li>').html('<span style="color:'+flyers[i].color+';">' +flyers[i].nickname+ ' </span> ' + flyers[i].score));
+        }
+
+    }
+
     function releasePuff(flyer) {
 
         //Add to stage
         var pDiv = $('<img class="puff" src="img/puff-small.png">');
-        $('#stage').append(pDiv);
+        $(stageDiv).append(pDiv);
 
-        var tX = flyer.x - (flyer.vx * 2.5);
-        var tY = flyer.y + 30 - (flyer.vy * 2.5);
+        var tX = flyer.x - (flyer.ax * 30);
+        var tY = flyer.y + 30 - (flyer.ay * 15);
 
         //Starting point
         TweenLite.set( $( pDiv ), { css: { left:tX, top:tY, scale:0.5 } } );
 
         //Target point
-        tX = tX - (flyer.vx * 1.5) + (Math.random()*12 - 6);
-        tY = tY - (flyer.vy * 1.5) + (Math.random()*20);
+        tX = tX - (flyer.ax * 160) + (Math.random() * 12 - 6);
+        tY = tY - (flyer.ay * 160) + (Math.random() * 20);
 
         //Scale and fade
         TweenLite.set( $( pDiv ), { css: { transformOrigin:"8px 8px 0" } } );
         TweenLite.to( $( pDiv ), 0.3, { css: { scale:0.5 + Math.random()*0.5, left:tX, top:tY}, ease:Power2.easeOut, onComplete: removeElement, onCompleteParams:[pDiv] } );
         TweenLite.to( $( pDiv ), 0.25, { css: { opacity:0 }, ease:Power2.easeIn } );
+
+    }
+
+    function releaseDropper(flyer) {
+
+        //Add to stage
+        var dDiv = $('<img class="puff" src="img/drop-small.png">');
+        $(stageDiv).append(dDiv);
+
+        var tX = flyer.x;
+        var tY = flyer.y;
+
+        //Starting point
+        TweenLite.set( $( dDiv ), { css: { left:tX, top:tY } } );
+
+        //Target point
+        tX = tX + (flyer.vx * 10);
+        tY = tY + 400;
+
+        //Scale and animated drop
+        TweenLite.to( $( dDiv ), 0.75, { css: { left:tX, top:tY }, ease:Power3.easeIn, onComplete: removeElement, onCompleteParams:[dDiv] } );
+
+    }
+
+    function releasePoints(val, col, x, y) {
+
+        //add to stage
+        var pDiv = $('<p class="points" style="color:'+col+';">+'+val+'</p>');
+
+        $(stageDiv).append(pDiv);
+
+        //Starting point
+        TweenLite.set( $( pDiv ), { css: { left:x, top:y, scale:0.25 } } );
+
+        //Target point
+        x += Math.random()*30-15;
+        y -= 45;
+
+        //Scale and fade
+        TweenLite.to( $( pDiv ), 0.25, { css: { scale:1, left:x, top:y }, ease:Power3.easeOut } );
+        TweenLite.to( $( pDiv ), 0.5, { css: { opacity:0 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
+
+    }
+
+    function releaseAsteroid() {
+
+        //add to stage
+        var ra = Math.ceil(Math.random()*3);
+        var aDiv = $('<div class="asteroid" style=""><img src="img/asteroid-dark.png"/><img src="img/a-gold-'+ra+'.png"/></div>');
+
+        $(stageDiv).append(aDiv);
+
+        //Release point
+        var startX = Math.random()*(stageBounds.right-60)+30;
+        var startY = Math.random()*(stageBounds.floor-60)+30;
+        var startScale = Math.random()*0.5+0.5;
+        TweenLite.set( $( aDiv ), { css: { left:startX, top:startY, scale:startScale } } );
+
+        var diam = Math.round(63 * startScale);
+        var gold = roundToNearest(diam/2, 5);
+
+        //Pop in
+        TweenLite.from( $( aDiv ), 1, { css: { scale:0 }, ease:Elastic.easeOut } );
+        TweenLite.from( $( aDiv ), 10, { css: { left:startX + (Math.random()*40-20), top:startY + (Math.random()*40-20), rotation:Math.random()*90-45 } } );
+
+        var ast = {"div":aDiv, "goldDiv":aDiv.find('img').last(), "x":startX, "y":startY, "diam":diam, "gold":gold };
+        asteroids.push(ast);
 
     }
 
