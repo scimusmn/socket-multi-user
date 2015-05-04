@@ -26,14 +26,14 @@ function Game() {
         //Begin releasing asteroids
         setInterval(function(){
 
-            if (flyers.length>0) releaseAsteroid();
+            if (flyers.length>1) releaseAsteroid();
 
-        }, 5000);
+        }, 7000);
 
         //Begin updating scoreboard
         setInterval(function(){
 
-            if (flyers.length>0) updateScoreboard();
+            if (flyers.length>1) updateScoreboard();
 
         }, 1000);
 
@@ -227,21 +227,17 @@ function Game() {
             if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1.25 ) {
 
                 //Successful strike
-                goldMined = 5;
-                ast.gold -= goldMined;
+                goldMined = ast.gold;
 
-                if (ast.gold <= 0){
+                //hide gold
+                $( ast.goldDiv ).hide();
 
-                    //hide gold
-                    $( ast.goldDiv ).hide();
+                //remove from stage
+                TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:2, onComplete: removeElement, onCompleteParams:[ast.div] } );
 
-                    //remove from stage
-                    TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:2, onComplete: removeElement, onCompleteParams:[ast.div] } );
+                //remove from game loop
+                asteroids.splice(a,1);
 
-                    //remove from game loop
-                    asteroids.splice(a,1);
-
-                }
 
                 releasePoints(goldMined, '#eee21c', aL - 10, aT - 15); //uncomment to always gold
                 return goldMined;
