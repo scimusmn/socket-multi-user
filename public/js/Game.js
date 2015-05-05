@@ -373,7 +373,7 @@ function Game() {
         var startX = Math.random()*(stageBounds.right-60)+30;
         var startY = Math.random()*(stageBounds.floor-60)+30;
         var startScale = Math.random()*0.5+0.5;
-        if (Math.random() < 0.2) startScale = 3.5;
+        if (Math.random() < 0.05) startScale = 2.5 + Math.random() * 2;//Monster asteroid!
         TweenLite.set( $( aDiv ), { css: { left:startX, top:startY, scale:startScale } } );
 
         var diam = Math.round(63 * startScale);
