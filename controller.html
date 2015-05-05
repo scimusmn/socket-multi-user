@@ -24,7 +24,7 @@
 
       function promptForNickname() {
 
-        var nickname = prompt("Enter nickname.", '');
+        var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to mine asteroids. Enter nickname.", '');
         var usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
 
         socket.emit('register', { 'usertype': 'client_controller',
@@ -42,7 +42,7 @@
   </script>
 
   <body>
-    <br/><h3 id="instruct" style="pointer-events:none;">Touch to control.</h3>
+    <br/><h3 id="instruct" style="pointer-events:none;">Touch and drag to move.<br/>Tap to mine.</h3>
     <div id="arrow" style="position: absolute; display:none;">
       <div id="arrowinner" style="position: absolute; width: 55px; height: 200px; left: -28px; top: -100px;">
       <!-- <div id="arrowinner" style="position: absolute; width: 55px; height: 318px; left: -28px; top: -159px;"> -->

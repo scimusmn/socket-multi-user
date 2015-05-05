@@ -58,7 +58,7 @@ function VectorTouchController(socket) {
             $('#instruct').stop().fadeTo(fadeDur, 0.2);
         },
         onFadeOut: function(fadeDur){
-            $arrow.stop().fadeTo(fadeDur, 0.3);
+            $arrow.stop().fadeTo(fadeDur, 0.01);
             $('#instruct').stop().fadeTo(fadeDur, 1);
         }
 

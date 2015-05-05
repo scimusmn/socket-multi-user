@@ -6,6 +6,7 @@ function Game() {
     var droppers = [];
     var stageDiv = {};
     var stageBounds = {};
+    var roundCountdown = -45;
 
     /* ============== */
     /* PUBLIC METHODS */
@@ -26,14 +27,34 @@ function Game() {
         //Begin releasing asteroids
         setInterval(function(){
 
-            if (flyers.length>1) releaseAsteroid();
+            if (flyers.length>0 && roundCountdown > 0) releaseAsteroid();
 
-        }, 7000);
+        }, 4000);
 
         //Begin updating scoreboard
         setInterval(function(){
 
-            if (flyers.length>1) updateScoreboard();
+            if (flyers.length>0) updateScoreboard();
+
+            if (roundCountdown < 0) {
+                roundCountdown ++;
+                $("#round-countdown").text(Math.abs(roundCountdown));
+                if (roundCountdown == 0) {
+                    $("#new-round").hide();
+                    roundCountdown = 76;
+                    resetScoreboard();
+                }
+            } else if (roundCountdown > 0) {
+                roundCountdown --;
+                if (roundCountdown <= 15) $("#game-countdown").text(Math.abs(roundCountdown));
+                if (roundCountdown == 0) {
+                    $("#new-round").show();
+                    roundCountdown = -45;
+                    clearAsteroids();
+                    updateScoreboard();
+                    $("#game-countdown").text(" ");
+                }
+            }
 
         }, 1000);
 
@@ -115,8 +136,8 @@ function Game() {
         } else {
             //Apply acceleration
             f.gas = true;
-            f.ax = data.magnitude * Math.cos(data.angle) * 0.6;
-            f.ay = data.magnitude * Math.sin(data.angle) * 0.6;
+            f.ax = data.magnitude * Math.cos(data.angle) * 0.8;
+            f.ay = data.magnitude * Math.sin(data.angle) * 0.8;
         }
 
     }
@@ -174,7 +195,7 @@ function Game() {
             }
 
             //Govern speed
-            flyer.vx = clamp(flyer.vx, -4, 4);
+            flyer.vx = clamp(flyer.vx, -3, 4);
             flyer.vy = clamp(flyer.vy, -4, 4);
 
             //Move based on velocity
@@ -254,12 +275,26 @@ function Game() {
         //Sort by score
         flyers.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score) } );
 
-        //TEMP (shouldn't reach outside game stage)
-        $('#messages').empty();
-        for (var i = 0; i < flyers.length; i++) {
-            $('#messages').append($('<li>').html('<span style="color:'+flyers[i].color+';">' +flyers[i].nickname+ ' </span> ' + flyers[i].score));
+        if (roundCountdown > 0) {
+            //TEMP (shouldn't reach outside game stage)
+            // $('#messages').empty();
+            // for (var i = 0; i < flyers.length; i++) {
+            //     $('#messages').append($('<li>').html('<span style="color:'+flyers[i].color+';">' +flyers[i].nickname+ ' </span> &nbsp; ' + flyers[i].score));
+            // }
+        } else if (roundCountdown < 0) {
+            //TEMP (shouldn't reach outside game stage)
+            $('#player-list').empty();
+            for (var i = 0; i < flyers.length; i++) {
+                $('#player-list').append($('<li>').html('<span style="color:'+flyers[i].color+';">' +flyers[i].nickname+ ' </span> &nbsp; ' + flyers[i].score));
+            }
         }
 
+    }
+
+    function resetScoreboard() {
+        for (var i = 0; i < flyers.length; i++) {
+            flyers[i].score = 0;
+        }
     }
 
     function releasePuff(flyer) {
@@ -338,6 +373,7 @@ function Game() {
         var startX = Math.random()*(stageBounds.right-60)+30;
         var startY = Math.random()*(stageBounds.floor-60)+30;
         var startScale = Math.random()*0.5+0.5;
+        if (Math.random() < 0.2) startScale = 3.5;
         TweenLite.set( $( aDiv ), { css: { left:startX, top:startY, scale:startScale } } );
 
         var diam = Math.round(63 * startScale);
@@ -349,6 +385,18 @@ function Game() {
 
         var ast = {"div":aDiv, "goldDiv":aDiv.find('img').last(), "x":startX, "y":startY, "diam":diam, "gold":gold };
         asteroids.push(ast);
+
+    }
+
+    function clearAsteroids() {
+
+        for( a=asteroids.length-1; a>=0; a--) {
+            var ast = asteroids[a];
+            //Fade out
+            TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:Math.random()*.5, onComplete: removeElement, onCompleteParams:[ast.div] } );
+            //Remove from game loop
+            asteroids.splice(a,1);
+        }
 
     }
 
