@@ -6,6 +6,9 @@
     position: absolute;
     z-index: 2;
 }
+.flyer p{
+    font-size: 1.5em;
+}
 .puff{
     position: absolute;
     z-index: 0;

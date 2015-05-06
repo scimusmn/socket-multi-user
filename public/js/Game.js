@@ -259,8 +259,7 @@ function Game() {
                 //remove from game loop
                 asteroids.splice(a,1);
 
-
-                releasePoints(goldMined, '#eee21c', aL - 10, aT - 15); //uncomment to always gold
+                releasePoints(goldMined, '#eee21c', aL - 10, aT - 20);
                 return goldMined;
 
             }
@@ -373,7 +372,7 @@ function Game() {
         var startX = Math.random()*(stageBounds.right-60)+30;
         var startY = Math.random()*(stageBounds.floor-60)+30;
         var startScale = Math.random()*0.5+0.5;
-        if (Math.random() < 0.05) startScale = 2.5 + Math.random() * 2;//Monster asteroid!
+        if (Math.random() < 0.07) startScale = 3 + Math.random() * 2;//Monster asteroid!
         TweenLite.set( $( aDiv ), { css: { left:startX, top:startY, scale:startScale } } );
 
         var diam = Math.round(63 * startScale);

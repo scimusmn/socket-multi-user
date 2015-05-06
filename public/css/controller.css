@@ -27,3 +27,9 @@ body {
     background-color: #444;
 
 }
+
+canvas {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+}

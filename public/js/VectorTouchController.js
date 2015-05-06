@@ -65,6 +65,28 @@ function VectorTouchController(socket) {
     });
     //End TEMP
 
+    //TEMP
+    var context = document.getElementById('canvas').getContext('2d');
+    function drawLine(x,y) {
+
+        clearLine();
+
+        context.beginPath();
+        context.moveTo(halfWidth, halfHeight);
+        context.lineTo(x, y, 3);
+        context.strokeStyle = '#cccccc';
+        context.stroke();
+
+        context.beginPath();
+        context.arc(halfWidth,halfHeight,8,0,2*Math.PI);
+        context.stroke();
+
+      };
+      function clearLine() {
+        context.clearRect ( 0 , 0 , document.getElementById('canvas').width, document.getElementById('canvas').height );
+      }
+      //END TEMP
+
     function touchEvent ( event ) {
 
         if (event.type == 'touchmove') {
@@ -74,14 +96,21 @@ function VectorTouchController(socket) {
 
             inputMove(tx, ty);
 
+            //Temp
+            drawLine(tx,ty);
+
         } else if ( event.type == 'touchstart' ) {
 
             halfWidth = event.touches[0].pageX;
             halfHeight = event.touches[0].pageY;
 
+            clearLine();//temp
+
         } else if ( event.touches.length == 0 ) {
 
             inputUp();
+
+            clearLine();//temp
 
         }
 
