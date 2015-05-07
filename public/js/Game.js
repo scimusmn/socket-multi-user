@@ -302,15 +302,15 @@ function Game() {
         var pDiv = $('<img class="puff" src="img/puff-small.png">');
         $(stageDiv).append(pDiv);
 
-        var tX = flyer.x - (flyer.ax * 30);
-        var tY = flyer.y + 30 - (flyer.ay * 15);
+        var tX = flyer.x - (flyer.ax * 15);
+        var tY = flyer.y + 30 - (flyer.ay * 10);
 
         //Starting point
         TweenLite.set( $( pDiv ), { css: { left:tX, top:tY, scale:0.5 } } );
 
         //Target point
-        tX = tX - (flyer.ax * 160) + (Math.random() * 12 - 6);
-        tY = tY - (flyer.ay * 160) + (Math.random() * 20);
+        tX = tX - (flyer.ax * 100) + (Math.random() * 12 - 6);
+        tY = tY - (flyer.ay * 100) + (Math.random() * 20);
 
         //Scale and fade
         TweenLite.set( $( pDiv ), { css: { transformOrigin:"8px 8px 0" } } );
