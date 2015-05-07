@@ -5,8 +5,10 @@ function VectorTouchController(socket) {
     var angle;
     var dist;
     var magnitude;
-    var halfWidth = parseInt($("body").width()/2);
-    var halfHeight = parseInt($("body").height()/2);
+    var screenWidth = parseInt($("body").width());
+    var screenHeight = parseInt($("body").height());
+    var halfWidth = parseInt(screenWidth/2);
+    var halfHeight = parseInt(screenHeight/2);
     var shortest = Math.min(halfWidth, halfHeight);
 
     this.enable = function(){
@@ -153,6 +155,48 @@ function VectorTouchController(socket) {
           magnitude = angle = 0;
 
         }
+
+    }
+
+    this.simulateUserInput = function() {
+
+        var simInputX = 0;
+        var simInputY = 0;
+        var simInputVX = 0;
+        var simInputVY = 0;
+
+        setInterval(function () {
+
+            simInputX = (Math.random() * screenWidth)*.25 + (screenWidth*.375);
+            simInputY = (Math.random() * screenHeight)*.25 + (screenHeight*.375);
+            simInputVX = Math.random() * 10 - 5;
+            simInputVY = Math.random() * 10 - 6; //slightly favor upwards
+
+        }, 3000);
+
+        setInterval(function () {
+
+            simInputX += simInputVX;
+            simInputY += simInputVY;
+
+            if (Math.random()>0.25){
+                //touchmove
+                inputMove(simInputX, simInputY);
+            }else {
+
+                if (Math.random()<0.5) {
+                    //touchstart
+                    halfWidth = Math.random() * screenWidth;
+                    halfHeight = Math.random() * screenHeight + 20;
+                } else {
+                    //touchend
+                    inputUp();
+                }
+
+            }
+
+        }, 20);
+
 
     }
 
