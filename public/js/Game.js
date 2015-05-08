@@ -150,6 +150,7 @@ function Game() {
 
         var f = lookupFlyer(data.userid);
         if (f==undefined) return;
+        if (f.stunned) return;
 
         //Swing pick-ax
         TweenLite.set( $( f.div ).children('#pick'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
@@ -285,7 +286,6 @@ function Game() {
     function attemptStun(attackingFlyer) {
 
         var didStun = false;
-
         var stunRadius = 40;
 
         var of;
@@ -294,8 +294,8 @@ function Game() {
 
         for( i=flyers.length-1; i>=0; i--) {
 
-            //skip attacking flyer
-            if (flyers[i].userid == attackingFlyer.userid){
+            //skip attacking flyer and stunned flyers
+            if (flyers[i].userid == attackingFlyer.userid || flyers[i].stunned == true){
                 continue;
             }
 
@@ -363,7 +363,7 @@ function Game() {
         tY = tY - (flyer.ay * 10) + (Math.random() * 12 - 6);
 
         //Scale and fade
-        TweenLite.to( $( pDiv ), 0.25, { css: { scale:0.5 + power + Math.random()*0.5, rotation:Math.random()*150-75, left:tX, top:tY}, ease:Power2.easeOut } );
+        TweenLite.to( $( pDiv ), 0.25, { css: { scale:0.75 + power + Math.random()*0.75, rotation:Math.random()*150-75, left:tX, top:tY}, ease:Power2.easeOut } );
         TweenLite.to( $( pDiv ), 0.3, { css: { opacity:0 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
 
     }

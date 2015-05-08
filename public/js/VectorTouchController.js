@@ -10,6 +10,9 @@ function VectorTouchController(socket) {
     var halfWidth = parseInt(screenWidth/2);
     var halfHeight = parseInt(screenHeight/2);
     var shortest = Math.min(halfWidth, halfHeight);
+    var ctx = document.getElementById('canvas').getContext('2d');
+    $("#canvas").attr('width', screenWidth);
+    $("#canvas").attr('height', screenHeight);
 
     this.enable = function(){
 
@@ -29,66 +32,6 @@ function VectorTouchController(socket) {
 
     }
 
-    //TEMP - TOUCGHLOW AND ARROW
-    var $arrow = $("#arrow");
-    $arrow.css('left',halfWidth + 'px');
-    $arrow.css('top',halfHeight + 'px');
-
-    $('body').touchglow({
-
-            touchColor: "#fff",
-            fadeInDuration: 25,
-            fadeOutDuration: 250,
-
-        onUpdatePosition: function(x,y){
-
-            var angle = Math.atan2(x - halfWidth, - (y - halfHeight) )*(180/Math.PI);
-            $arrow.css({ "-webkit-transform": 'rotate(' + angle + 'deg)'});
-            $arrow.css({ '-moz-transform': 'rotate(' + angle + 'deg)'});
-
-            //Temp
-            $arrow.css('left', x + 'px');
-            $arrow.css('top', y + 'px');
-
-            //Temp
-            $("#startx").css('left', halfWidth + 'px');
-            $("#startx").css('top', halfHeight + 'px');
-
-        },
-        onFadeIn: function(fadeDur){
-            $arrow.stop().fadeTo(fadeDur, 1);
-            $('#instruct').stop().fadeTo(fadeDur, 0.2);
-        },
-        onFadeOut: function(fadeDur){
-            $arrow.stop().fadeTo(fadeDur, 0.01);
-            $('#instruct').stop().fadeTo(fadeDur, 1);
-        }
-
-    });
-    //End TEMP
-
-    //TEMP
-    var context = document.getElementById('canvas').getContext('2d');
-    function drawLine(x,y) {
-
-        clearLine();
-
-        context.beginPath();
-        context.moveTo(halfWidth, halfHeight);
-        context.lineTo(x, y, 3);
-        context.strokeStyle = '#cccccc';
-        context.stroke();
-
-        context.beginPath();
-        context.arc(halfWidth,halfHeight,8,0,2*Math.PI);
-        context.stroke();
-
-      };
-      function clearLine() {
-        context.clearRect ( 0 , 0 , document.getElementById('canvas').width, document.getElementById('canvas').height );
-      }
-      //END TEMP
-
     function touchEvent ( event ) {
 
         if (event.type == 'touchmove') {
@@ -97,22 +40,18 @@ function VectorTouchController(socket) {
             ty = event.touches[0].pageY;
 
             inputMove(tx, ty);
-
-            //Temp
-            drawLine(tx,ty);
+            drawUI(tx,ty);
 
         } else if ( event.type == 'touchstart' ) {
 
             halfWidth = event.touches[0].pageX;
             halfHeight = event.touches[0].pageY;
-
-            clearLine();//temp
+            clearCanvas();
 
         } else if ( event.touches.length == 0 ) {
 
             inputUp();
-
-            clearLine();//temp
+            clearCanvas();
 
         }
 
@@ -158,6 +97,42 @@ function VectorTouchController(socket) {
 
     }
 
+    //Canvas drawing
+    function drawUI(x,y) {
+
+        clearCanvas();
+
+        ctx.beginPath();
+        ctx.moveTo(halfWidth, halfHeight);
+        ctx.lineTo(x, y, 3);
+        ctx.strokeStyle = '#ccc';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(halfWidth,halfHeight,8,0,2*Math.PI);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        var fingyOffset = 95;
+
+        ctx.fillStyle="#ddd";
+        ctx.beginPath();
+        ctx.moveTo(0+fingyOffset, 0);
+        ctx.lineTo(-24+fingyOffset, -20);
+        ctx.lineTo(-20+fingyOffset, 0);
+        ctx.lineTo(-24+fingyOffset, 20);
+        ctx.fill();
+
+        ctx.restore();
+
+    };
+
+    function clearCanvas() {
+        ctx.clearRect ( 0 , 0 , screenWidth, screenHeight );
+    }
+
     this.simulateUserInput = function() {
 
         var simInputX = 0;
@@ -197,8 +172,26 @@ function VectorTouchController(socket) {
 
         }, 20);
 
-
     }
+
+    //Touchglow effect
+    $('body').touchglow({
+
+            touchColor: "#fff",
+            fadeInDuration: 25,
+            fadeOutDuration: 250,
+
+        onUpdatePosition: function(x,y){
+
+        },
+        onFadeIn: function(fadeDur){
+            $('#instruct').stop().fadeTo(fadeDur, 0.2);
+        },
+        onFadeOut: function(fadeDur){
+            $('#instruct').stop().fadeTo(fadeDur, 1);
+        }
+
+    });
 
     function map(value, low1, high1, low2, high2) {
 
