@@ -30,12 +30,12 @@
 
       if (localData !== null) {
         var data = JSON.parse(localData);
-        promptWelcomeBack(data);
+        promptReturnUser(data);
       } else {
         promptFirstTimer();
       }
 
-      function promptWelcomeBack(data) {
+      function promptReturnUser(data) {
 
         var nickname = prompt("Welcome back! (User:"+data.userid+")\nEnter nickname.", '');
         data.nickname = nickname;
