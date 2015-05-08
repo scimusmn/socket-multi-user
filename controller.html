@@ -20,27 +20,78 @@
 
       var socket = io();
 
-      promptForNickname();
+      /**
+     * Check for previously stored
+     * data to determine whether
+     * this is a first-time or
+     * returning user.
+     */
+      var localData = localStorage.getItem('smm_player_data');
 
-      function promptForNickname() {
+      if (localData !== null) {
+        var data = JSON.parse(localData);
+        promptWelcomeBack(data);
+      } else {
+        promptFirstTimer();
+      }
 
-        var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to mine asteroids. Enter nickname.", '');
-        var usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
+      function promptWelcomeBack(data) {
 
-        socket.emit('register', { 'usertype': 'client_controller',
-                                  'nickname': nickname,
-                                  'usercolor': usercolor
-                                });
-
-        // Uncomment to simulate random user input.
-        // setTimeout(function () {
-        //   touchControl.simulateUserInput();
-        // }, 5000);
+        var nickname = prompt("Welcome back! (User:"+data.userid+")\nEnter nickname.", '');
+        data.nickname = nickname;
+        register(data);
 
       }
 
-      var touchControl = new VectorTouchController(socket);
-      touchControl.enable();
+      function promptFirstTimer() {
+
+        var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to mine asteroids. Enter nickname.", '');
+        var data = {'nickname': nickname};
+        register(data);
+
+      }
+
+      function register(data) {
+
+        console.log('register: '+data);
+        data.usertype = 'client_controller';
+        data.usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
+        socket.emit('register', data);
+
+        setupTouchControls();
+
+      }
+
+      /**
+     * Listen for instruction from
+     * node to store new or updated
+     * user data, specific to this
+     * device. e.g., unique ids,
+     * scores, customizations...
+     */
+      socket.on('store-local-data', function(data){
+
+        if (typeof window.localStorage != "undefined") {
+
+          localStorage.setItem(data.key, data.dataString);
+
+        } else {
+
+          console.log("WARNING: localstorage unavailable on this device");
+
+        }
+
+      });
+
+      function setupTouchControls() {
+
+        var touchControl = new VectorTouchController(socket);
+        touchControl.enable();
+
+        //Uncomment to simulate random user input.
+        // touchControl.simulateUserInput();
+
+      }
 
     });
 

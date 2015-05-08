@@ -10,6 +10,10 @@ body {
     background: #222;
 }
 
+#stage {
+
+}
+
 #messages {
     list-style-type: none;
     margin: 0;

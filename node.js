@@ -10,6 +10,7 @@ var puid = new Puid(true);
 
 var CLIENT_CONTROLLER = "client_controller";
 var CLIENT_SHARED_SCREEN = "client_shared_screen";
+var DEVICE_STORAGE_KEY = 'smm_player_data';
 var sharedScreenSID;
 var sharedScreenConnected = false;
 
@@ -47,14 +48,13 @@ app.get('/', function (request, response){
 //Socket.io connections
 io.on('connection', function(socket){
 
-    //Set up variables unique to this client
-    var userid = puid.generate();
+    //Variables unique to this client
+    var userid;
     var usertype;
     var nickname;
     var usercolor;
 
-    console.log('User has connected: ', userid);
-    console.log('connection :', socket.request.connection._peername);
+    console.log('User has connected. Connection:', socket.request.connection._peername);
 
     //User registered
     socket.on("register", function(data) {
@@ -72,9 +72,27 @@ io.on('connection', function(socket){
 
         } else if (usertype == CLIENT_CONTROLLER && sharedScreenConnected) {
 
-            io.sockets.connected[sharedScreenSID].emit('add-player', {  'nickname': nickname,
-                                                                        'userid': userid,
-                                                                        'usercolor': usercolor
+            /**
+             * If returning user, use
+             * existing userid found on
+             * device. If new user, perfom
+             * initial data store to device
+             * using generated unique id.
+             */
+            if (data.userid != undefined && data.userid != ''){
+                //Returning user
+                userid = data.userid;
+            } else {
+                //New user
+                userid = puid.generate();
+                var userData = createUserData();
+                socket.emit('store-local-data', {'key': DEVICE_STORAGE_KEY, 'dataString': userData});
+            }
+
+            //Alert shared screen of new player
+            io.sockets.connected[sharedScreenSID].emit('add-player', {  'nickname' : nickname,
+                                                                        'userid' : userid,
+                                                                        'usercolor' : usercolor
                                                                     });
 
         }
@@ -118,7 +136,19 @@ io.on('connection', function(socket){
 
     });
 
+    function createUserData() {
+
+        var dataObj = { 'userid' : userid,
+                        'nickname' : nickname,
+                        'usercolor' : usercolor
+                        };
+
+        return JSON.stringify(dataObj);
+
+    }
+
 });
+
 
 //Listen for http requests on port <portNumber>
 http.listen(portNumber, function(){

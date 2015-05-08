@@ -24,7 +24,7 @@ function Game() {
         //Start game loop
         currentFrameRequest = window.requestAnimationFrame(gameLoop);
 
-        //Begin releasing asteroids
+        //Begin releasing asteroidss
         setInterval(function(){
 
             if (flyers.length>0 && roundCountdown > 0) releaseAsteroid();
@@ -95,6 +95,7 @@ function Game() {
                             'color':data.usercolor,
                             'count':0,
                             'score':0,
+                            'stunned':false,
                             'gas':false,
                             'dir':1,
                             'x':startX,
@@ -115,7 +116,7 @@ function Game() {
 
         //Remove flyer from both stage and game loop
         var flyer = lookupFlyer(data.userid);
-        $(flyer.div).remove();
+        if (flyer != undefined) $(flyer.div).remove();
 
         for( i=flyers.length-1; i>=0; i--) {
             if( flyers[i].userid == data.userid ) flyers.splice(i,1);
@@ -128,6 +129,7 @@ function Game() {
         // console.log('Game.controlVector by player: ' + data.nickname + ". Angle: " + data.angle + ". Magnitude: " + data.magnitude );
 
         var f = lookupFlyer(data.userid);
+        if (f==undefined) return;
 
         if (data.magnitude == 0) {
             //No acceleration
@@ -147,6 +149,7 @@ function Game() {
         console.log('Game.controlTap by player: ' + data.nickname );
 
         var f = lookupFlyer(data.userid);
+        if (f==undefined) return;
 
         //Swing pick-ax
         TweenLite.set( $( f.div ).children('#pick'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
@@ -154,6 +157,9 @@ function Game() {
 
         //Mine for gold
         f.score += mineForGold(f.x+10, f.y+25, f.color);
+
+        //Stun others
+        var didStun = attemptStun(f);
 
         //Drop mine
         // releaseDropper(f);
@@ -169,10 +175,17 @@ function Game() {
         //Update game objects here...
         flyers.forEach(function(flyer){
 
+            if (flyer.stunned == true) {
+                //stunned flyer remains still
+                flyer.vx = 0;
+                flyer.vy = 0;
+                return; //skip to next flyer
+            }
+
             if (flyer.gas == true){
 
                 flyer.count ++;
-                if (flyer.count%4 == 1) {
+                if (flyer.count%5 == 1) {
                     releasePuff(flyer);
                 }
 
@@ -269,17 +282,53 @@ function Game() {
 
     }
 
+    function attemptStun(attackingFlyer) {
+
+        var didStun = false;
+
+        var stunRadius = 40;
+
+        var of;
+        var oX;
+        var oY;
+
+        for( i=flyers.length-1; i>=0; i--) {
+
+            //skip attacking flyer
+            if (flyers[i].userid == attackingFlyer.userid){
+                continue;
+            }
+
+            of = flyers[i];
+            oX = parseInt( $(of.div).css('left') );
+            oY = parseInt( $(of.div).css('top') );
+
+            if ( dist( oX, oY, attackingFlyer.x, attackingFlyer.y ) < stunRadius ) {
+
+                //Successful stun!
+                of.stunned = true;
+                TweenMax.to( $( of.div ), 0.2, { css: { opacity:0.5 }, ease:Power2.easeInOut, repeat:12, yoyo:true, onComplete: liftStun, onCompleteParams:[of] } );
+
+            }
+
+        }
+
+        return didStun;
+
+    }
+
+    function liftStun(flyer){
+        flyer.stunned = false;
+        TweenLite.set( $( flyer.div ), { css: { opacity:1 } } );
+    }
+
     function updateScoreboard() {
 
         //Sort by score
         flyers.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score) } );
 
         if (roundCountdown > 0) {
-            //TEMP (shouldn't reach outside game stage)
-            // $('#messages').empty();
-            // for (var i = 0; i < flyers.length; i++) {
-            //     $('#messages').append($('<li>').html('<span style="color:'+flyers[i].color+';">' +flyers[i].nickname+ ' </span> &nbsp; ' + flyers[i].score));
-            // }
+            //OPTION: Could update in-game leaderboard here...
         } else if (roundCountdown < 0) {
             //TEMP (shouldn't reach outside game stage)
             $('#player-list').empty();
@@ -302,20 +351,20 @@ function Game() {
         var pDiv = $('<img class="puff" src="img/puff-small.png">');
         $(stageDiv).append(pDiv);
 
-        var tX = flyer.x - (flyer.ax * 15);
-        var tY = flyer.y + 30 - (flyer.ay * 10);
+        var tX = flyer.x - (flyer.ax * 5);
+        var tY = flyer.y + 35 - (flyer.ay * 4);
+        var power = Math.abs(flyer.ax) + Math.abs(flyer.ay);
 
         //Starting point
-        TweenLite.set( $( pDiv ), { css: { left:tX, top:tY, scale:0.5 } } );
+        TweenLite.set( $( pDiv ), { css: { left:tX, top:tY, scale:0.3 } } );
 
         //Target point
-        tX = tX - (flyer.ax * 100) + (Math.random() * 12 - 6);
-        tY = tY - (flyer.ay * 100) + (Math.random() * 20);
+        tX = tX - (flyer.ax * 10) + (Math.random() * 12 - 6);
+        tY = tY - (flyer.ay * 10) + (Math.random() * 12 - 6);
 
         //Scale and fade
-        TweenLite.set( $( pDiv ), { css: { transformOrigin:"8px 8px 0" } } );
-        TweenLite.to( $( pDiv ), 0.3, { css: { scale:0.5 + Math.random()*0.5, left:tX, top:tY}, ease:Power2.easeOut, onComplete: removeElement, onCompleteParams:[pDiv] } );
-        TweenLite.to( $( pDiv ), 0.25, { css: { opacity:0 }, ease:Power2.easeIn } );
+        TweenLite.to( $( pDiv ), 0.25, { css: { scale:0.5 + power + Math.random()*0.5, rotation:Math.random()*150-75, left:tX, top:tY}, ease:Power2.easeOut } );
+        TweenLite.to( $( pDiv ), 0.3, { css: { opacity:0 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
 
     }
 
