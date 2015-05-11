@@ -84,7 +84,7 @@ function Game() {
         console.log('Game.addPlayer: ' + data.nickname );
 
         //Add new flyer div to stage
-        $(stageDiv).append('<div id="flyer_'+data.userid+'" class="flyer" ><p style="color:'+data.usercolor+';">'+data.nickname+'</p><img id="pick" src="img/pick-small.png"/><img src="img/astro-small.png"/></div>');
+        $(stageDiv).append('<div id="flyer_'+data.userid+'" class="flyer" ><p style="color:'+data.usercolor+';">'+data.nickname+'</p><img id="pick" src="img/pick-small.png"/><img id="thrust" src="img/thrust-small.png"/><img src="img/astro-small.png"/></div>');
         var flyerDiv = $( '#flyer_'+data.userid );
 
         //Pop in
@@ -194,7 +194,11 @@ function Game() {
                 }
                 */
 
+                $(flyer.div).children("#thrust").show();
+
             } else {
+
+                $(flyer.div).children("#thrust").hide();
 
                 // Friction
                 flyer.vx *= 0.99;
