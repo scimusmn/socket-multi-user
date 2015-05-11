@@ -117,11 +117,11 @@ function VectorTouchController(socket) {
         ctx.rotate(angle);
         var fingyOffset = 95;
 
-        ctx.fillStyle="#ddd";
+        ctx.fillStyle="#bbb";
         ctx.beginPath();
         ctx.moveTo(0+fingyOffset, 0);
         ctx.lineTo(-24+fingyOffset, -20);
-        ctx.lineTo(-20+fingyOffset, 0);
+        ctx.lineTo(-19+fingyOffset, 0);
         ctx.lineTo(-24+fingyOffset, 20);
         ctx.fill();
 

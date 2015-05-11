@@ -27,9 +27,14 @@ function Game() {
         //Begin releasing asteroidss
         setInterval(function(){
 
-            if (flyers.length>0 && roundCountdown > 0) releaseAsteroid();
+            if (flyers.length>0 && roundCountdown > 0) {
+                releaseAsteroid();
+                for (var i = 0; i < Math.floor(flyers.length/3); i++) {
+                    releaseAsteroid();
+                };
+            }
 
-        }, 4000);
+        }, 4500);
 
         //Begin updating scoreboard
         setInterval(function(){
@@ -162,9 +167,6 @@ function Game() {
         //Stun others
         var didStun = attemptStun(f);
 
-        //Drop mine
-        // releaseDropper(f);
-
     }
 
     /* =============== */
@@ -185,10 +187,12 @@ function Game() {
 
             if (flyer.gas == true){
 
+                /*
                 flyer.count ++;
-                if (flyer.count%5 == 1) {
+                if (flyer.count%6 == 1) {
                     releasePuff(flyer);
                 }
+                */
 
             } else {
 
@@ -262,18 +266,36 @@ function Game() {
             if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1.25 ) {
 
                 //Successful strike
-                goldMined = ast.gold;
 
-                //hide gold
-                $( ast.goldDiv ).hide();
+                if (ast.diam < 65) {
 
-                //remove from stage
-                TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:2, onComplete: removeElement, onCompleteParams:[ast.div] } );
+                    //Normal asteroid requires one hit
+                    goldMined = ast.gold;
+                    ast.gold = 0;
+                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam*.5) + 8);
 
-                //remove from game loop
-                asteroids.splice(a,1);
+                } else {
 
-                releasePoints(goldMined, '#eee21c', aL - 10, aT - 20);
+                    //Monster asteroid requires multiple swings
+                    goldMined = 10 + Math.ceil(Math.random()*15);
+                    ast.gold -= goldMined;
+                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam*.5) - 5);
+
+                }
+
+                if (ast.gold <= 0) {
+
+                    //hide gold
+                    $( ast.goldDiv ).hide();
+
+                    //remove from stage
+                    TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:2, onComplete: removeElement, onCompleteParams:[ast.div] } );
+
+                    //remove from game loop
+                    asteroids.splice(a,1);
+
+                }
+
                 return goldMined;
 
             }
@@ -359,11 +381,11 @@ function Game() {
         TweenLite.set( $( pDiv ), { css: { left:tX, top:tY, scale:0.3 } } );
 
         //Target point
-        tX = tX - (flyer.ax * 10) + (Math.random() * 12 - 6);
-        tY = tY - (flyer.ay * 10) + (Math.random() * 12 - 6);
+        tX = tX - (flyer.ax * 15) + (Math.random() * 12 - 6);
+        tY = tY - (flyer.ay * 15) + (Math.random() * 12 - 6);
 
         //Scale and fade
-        TweenLite.to( $( pDiv ), 0.25, { css: { scale:0.75 + power + Math.random()*0.75, rotation:Math.random()*150-75, left:tX, top:tY}, ease:Power2.easeOut } );
+        TweenLite.to( $( pDiv ), 0.25, { css: { scale:0.85 + power + Math.random()*0.85, rotation:Math.random()*150-75, left:tX, top:tY}, ease:Power2.easeOut } );
         TweenLite.to( $( pDiv ), 0.3, { css: { opacity:0 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
 
     }
