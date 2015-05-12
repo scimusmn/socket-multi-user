@@ -1,20 +1,25 @@
 function VectorTouchController(socket) {
 
-    var tx
-    var ty;
     var angle;
     var dist;
     var magnitude;
     var screenWidth = parseInt($("body").width());
     var screenHeight = parseInt($("body").height());
-    var halfWidth = parseInt(screenWidth/2);
-    var halfHeight = parseInt(screenHeight/2);
-    var shortest = Math.min(halfWidth, halfHeight);
+    var centerX = parseInt(screenWidth/2);
+    var centerY = parseInt(screenHeight/2);
+    var shortest = Math.min(centerX, centerY);
+    var mouseIsDown = false;
+
+    //Setup canvas drawing
     var ctx = document.getElementById('canvas').getContext('2d');
     $("#canvas").attr('width', screenWidth);
     $("#canvas").attr('height', screenHeight);
 
     this.enable = function(){
+
+        document.addEventListener( 'mousedown', mousedown, false );
+        document.addEventListener( 'mousemove', mousemove, false );
+        document.addEventListener( 'mouseup', mouseup, false );
 
         document.addEventListener( 'touchstart', touchEvent, false );
         document.addEventListener( 'touchend', touchEvent, false );
@@ -25,6 +30,10 @@ function VectorTouchController(socket) {
 
     this.disable = function(){
 
+        document.removeEventListener( 'mousedown', mousedown, false );
+        document.removeEventListener( 'mousemove', mousemove, false );
+        document.removeEventListener( 'mouseup', mouseup, false );
+
         document.removeEventListener( 'touchstart', touchEvent, false );
         document.removeEventListener( 'touchend', touchEvent, false );
         document.removeEventListener( 'touchcancel', touchEvent, false );
@@ -32,26 +41,41 @@ function VectorTouchController(socket) {
 
     }
 
+    function mousedown (event) {
+
+        mouseIsDown = true;
+        inputStart(event.pageX, event.pageY);
+
+    }
+
+    function mousemove (event) {
+
+        if (mouseIsDown == true) {
+            inputMove(event.pageX, event.pageY);
+        }
+
+    }
+
+    function mouseup (event) {
+
+        mouseIsDown = false;
+        inputUp();
+
+    }
+
     function touchEvent ( event ) {
 
         if (event.type == 'touchmove') {
 
-            tx = event.touches[0].pageX;
-            ty = event.touches[0].pageY;
-
-            inputMove(tx, ty);
-            drawUI(tx,ty);
+            inputMove(event.touches[0].pageX, event.touches[0].pageY);
 
         } else if ( event.type == 'touchstart' ) {
 
-            halfWidth = event.touches[0].pageX;
-            halfHeight = event.touches[0].pageY;
-            clearCanvas();
+            inputStart(event.touches[0].pageX, event.touches[0].pageY);
 
         } else if ( event.touches.length == 0 ) {
 
             inputUp();
-            clearCanvas();
 
         }
 
@@ -60,13 +84,23 @@ function VectorTouchController(socket) {
 
     }
 
+    function inputStart(inputX, inputY){
+
+        centerX = inputX;
+        centerY = inputY;
+        clearCanvas();
+
+    }
+
     function inputMove(inputX, inputY) {
 
         //Angle from center of screen
-        angle = Math.atan2(inputY - halfHeight, inputX - halfWidth);
+        angle = Math.atan2(inputY - centerY, inputX - centerX);
 
         //Distance from center in pixels
-        dist = Math.sqrt( (inputX -= halfWidth) * inputX + (inputY -= halfHeight) * inputY );
+        var ix = inputX;
+        var iy = inputY;
+        dist = Math.sqrt( (ix -= centerX) * ix + (iy -= centerY) * iy );
 
         //Normalized magnitude (0-1) based on shortest screen side.
         magnitude = map(dist, 0, shortest, 0, 1);
@@ -75,6 +109,8 @@ function VectorTouchController(socket) {
         socket.emit('control-vector', {     'angle': angle,
                                             'magnitude': magnitude
                                         });
+        //Draw UI
+        drawUI(inputX, inputY);
 
     }
 
@@ -95,29 +131,31 @@ function VectorTouchController(socket) {
 
         }
 
+        clearCanvas();
+
     }
 
     //Canvas drawing
-    function drawUI(x,y) {
+    function drawUI(tx,ty) {
 
         clearCanvas();
 
         ctx.beginPath();
-        ctx.moveTo(halfWidth, halfHeight);
-        ctx.lineTo(x, y, 3);
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(tx, ty, 3);
         ctx.strokeStyle = '#ccc';
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(halfWidth,halfHeight,8,0,2*Math.PI);
+        ctx.arc(centerX,centerY,8,0,2*Math.PI);
         ctx.stroke();
 
         ctx.save();
-        ctx.translate(x, y);
+        ctx.translate(tx, ty);
         ctx.rotate(angle);
         var fingyOffset = 95;
 
-        ctx.fillStyle="#bbb";
+        ctx.fillStyle = "#bbb";
         ctx.beginPath();
         ctx.moveTo(0+fingyOffset, 0);
         ctx.lineTo(-24+fingyOffset, -20);
@@ -161,8 +199,8 @@ function VectorTouchController(socket) {
 
                 if (Math.random()<0.5) {
                     //touchstart
-                    halfWidth = Math.random() * screenWidth;
-                    halfHeight = Math.random() * screenHeight + 20;
+                    centerX = Math.random() * screenWidth;
+                    centerY = Math.random() * screenHeight + 20;
                 } else {
                     //touchend
                     inputUp();

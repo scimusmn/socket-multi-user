@@ -18,30 +18,21 @@ var portNumber = 3000;
 app.set('port', portNumber);
 app.use(express.static(path.join(__dirname, 'public')));
 
+//Serve client files
 app.get('/', function (request, response){
-
-    /**
-     * Serve 'controller' file to
-     * mobile clients, and 'screen'
-     * file to non-mobile clients.
-     * Currently assuming either
-     * iOS or Android for mobile.
-     */
 
     var userAgent = request.headers['user-agent'];
     var os = uaParser.parseOS(userAgent).toString();
+    //TODO: Serve warning page to any user on unsupported OS, browser, or device.
 
-    console.log("Serving file to: ", os);
+    console.log("Serving controller.html to: ", os);
+    response.sendFile(__dirname + '/controller.html');
 
-    if ( os.indexOf('iOS') != -1  || os.indexOf('Android') != -1) {
+});
+app.get('/screen', function (request, response){
 
-        response.sendFile(__dirname + '/controller.html');
-
-    } else {
-
-        response.sendFile(__dirname + '/screen.html');
-
-    }
+    console.log("Serving screen.html");
+    response.sendFile(__dirname + '/screen.html');
 
 });
 
