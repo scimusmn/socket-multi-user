@@ -127,6 +127,13 @@ io.on('connection', function(socket){
 
     });
 
+    //Experimental//Sound playback
+    socket.on('stun', function (data){
+
+        //todo-find matching controller socket and emit event to play sound on device
+
+    });
+
     function createUserData() {
 
         var dataObj = { 'userid' : userid,

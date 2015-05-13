@@ -79,8 +79,8 @@ function VectorTouchController(socket) {
 
         }
 
-        event.preventDefault();
-        event.stopPropagation();
+        // event.preventDefault();
+        // event.stopPropagation();
 
     }
 

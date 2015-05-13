@@ -13,6 +13,7 @@
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="../js/VectorTouchController.js"></script>
   <script src="js/vendor/jquery.touchglow.js"></script>
+  <script src="js/vendor/howler.min.js"></script>
 
   <script>
 
@@ -92,6 +93,33 @@
         // touchControl.simulateUserInput();
 
       }
+
+      //Experimental//device sound playback
+      //because of mobile limitations, we must
+      //instantiate our sounds on the first user event
+      var sound;
+      document.addEventListener( 'touchend', initSounds, false );
+      function initSounds () {
+
+        sound = new Howl({
+            urls: ['sounds/sprite.mp3', 'sounds/sprite.ogg'],
+            buffer: true,
+            sprite: {
+              stun: [0, 635],
+              winner: [636, 4410]
+            }
+          });
+
+        document.removeEventListener( 'touchend', initSounds, false );
+
+      }
+
+      socket.on('play-sound', function(data){
+        console.log("play-snd", data.soundId);
+        if (sound) {
+          sound.play(data.soundId);
+        }
+      });
 
     });
 
