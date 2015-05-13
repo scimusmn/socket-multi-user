@@ -58,6 +58,20 @@
 
       game.init($('#stage'));
 
+      //temp
+      game.setCallbacks(onWin, onStun);
+
+      function onWin(socketid) {
+        //Emit winner's socket id
+        socket.emit('win-event', {'socketid':socketid} );
+      }
+      function onStun(socketid) {
+        //Emit stunned user's socketid
+        socket.emit('stun-event', {'socketid':socketid} );
+      };
+
+
+
     });
 
   </script>

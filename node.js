@@ -55,6 +55,7 @@ io.on('connection', function(socket){
         usertype = data.usertype;
         nickname = data.nickname;
         usercolor = data.usercolor;
+        socketid = socket.id;
 
         if (usertype == CLIENT_SHARED_SCREEN) {
 
@@ -83,6 +84,7 @@ io.on('connection', function(socket){
             //Alert shared screen of new player
             io.sockets.connected[sharedScreenSID].emit('add-player', {  'nickname' : nickname,
                                                                         'userid' : userid,
+                                                                        'socketid' : socketid,
                                                                         'usercolor' : usercolor
                                                                     });
 
@@ -127,10 +129,22 @@ io.on('connection', function(socket){
 
     });
 
+    //TEMP
     //Experimental//Sound playback
-    socket.on('stun', function (data){
+    socket.on('stun-event', function (data){
 
-        //todo-find matching controller socket and emit event to play sound on device
+        //trying to -find matching controller socket and emit event to play sound on device
+        console.log("stun-event:"+data.socketid);
+        io.sockets.connected[data.socketid].emit('stun-event', data );
+
+
+    });
+    socket.on('win-event', function (data){
+
+        //trying to -find matching controller socket and emit event to play sound on device
+        console.log("win-event:"+data.socketid);
+        io.sockets.connected[data.socketid].emit('win-event', data );
+
 
     });
 

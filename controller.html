@@ -114,10 +114,17 @@
 
       }
 
-      socket.on('play-sound', function(data){
-        console.log("play-snd", data.soundId);
+      socket.on('stun-event', function(data){
+        console.log('stun-event');
         if (sound) {
-          sound.play(data.soundId);
+          sound.play('stun');
+        }
+      });
+
+      socket.on('win-event', function(data){
+        console.log('win-event');
+        if (sound) {
+          sound.play('winner');
         }
       });
 

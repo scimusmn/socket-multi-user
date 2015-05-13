@@ -8,9 +8,18 @@ function Game() {
     var stageBounds = {};
     var roundCountdown = -45;
 
+    //temp/experimental - trying to wire in sounds
+    var winCallback;
+    var stunCallback;
+
     /* ============== */
     /* PUBLIC METHODS */
     /* ============== */
+
+    this.setCallbacks = function(win, stun){
+        winCallback = win;
+        stunCallback = stun;
+    }
 
     this.init = function(_stageDiv) {
 
@@ -58,6 +67,11 @@ function Game() {
                     clearAsteroids();
                     updateScoreboard();
                     $("#game-countdown").text(" ");
+
+                    //Experiemental//Emit winner event when new person takes pt lead
+                    console.log("win: "+ flyers[0].nickname+" | "+flyers[0].socketid);
+                    if(winCallback) winCallback.call(undefined, flyers[0].socketid);
+
                 }
             }
 
@@ -95,6 +109,7 @@ function Game() {
 
         //Add to game loop
         var newFlyer = {    'userid':data.userid,
+                            'socketid':data.socketid,
                             'div':flyerDiv,
                             'nickname':data.nickname,
                             'color':data.usercolor,
@@ -334,6 +349,13 @@ function Game() {
                 //Successful stun!
                 of.stunned = true;
                 TweenMax.to( $( of.div ), 0.2, { css: { opacity:0.5 }, ease:Power2.easeInOut, repeat:12, yoyo:true, onComplete: liftStun, onCompleteParams:[of] } );
+
+                //Experiemental//Emit stun event to play sound on controller device
+                console.log("stun "+of.socketid);
+                if(stunCallback){
+                    console.log("s "+stunCallback);
+                    stunCallback.call(undefined, of.socketid);
+                }
 
             }
 
