@@ -24,7 +24,7 @@ app.get('/', function (request, response){
 
     var userAgent = request.headers['user-agent'];
     var os = uaParser.parseOS(userAgent).toString();
-    //TODO: Serve warning page to any user on unsupported OS, browser, or device.
+    //TODO: Serve warning to any user on unsupported OS, browser, or device.
 
     console.log('Serving controller.html to: ', os);
     response.sendFile(__dirname + '/controller.html');
@@ -90,7 +90,7 @@ io.on('connection', function(socket){
                  if (prevConnected && prevConnected !== socket.id) {
                     //TODO: Display "Disconnected" message on previous tab.
                     console.log('Disconnecting redundant user socket: '+clients[userid]);
-                    prevConnected.emit('message', {'msg': 'Whoops you disconnected! Reload page to join.'} );
+                    prevConnected.emit('alert-message', {'msg': 'Whoops you disconnected! Reload page to join.'} );
                     clients[userid].disconnect();
                     delete clients[userid];
                  }
@@ -157,25 +157,13 @@ io.on('connection', function(socket){
 
     });
 
-    //TEMP
-    //Experimental//Sound playback
-    socket.on('stun-event', function (data){
+    //Forward events to specific controllers
+    socket.on('controller-event', function (data){
 
-        //trying to -find matching controller socket and emit event to play sound on device
-        console.log('stun-event:' + data.socketid);
-        io.sockets.connected[data.socketid].emit('stun-event', data );
-
+        console.log('Forwarding controller-event of type: ' + data.type + ' to: ' + data.socketid);
+        io.sockets.connected[data.socketid].emit('controller-event', data );
 
     });
-    socket.on('win-event', function (data){
-
-        //trying to -find matching controller socket and emit event to play sound on device
-        console.log('win-event:'+data.socketid);
-        io.sockets.connected[data.socketid].emit('win-event', data );
-
-
-    });
-    //END TEMP
 
     function createUserData() {
 

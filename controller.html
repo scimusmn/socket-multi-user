@@ -64,7 +64,18 @@
 
       }
 
-      socket.on('message', function(data){
+      function setupTouchControls() {
+
+        var touchControl = new VectorTouchController(socket);
+        touchControl.enable();
+
+      }
+
+      /**
+     * Generalized message reciever
+     * to display full screen alerts
+     */
+      socket.on('alert-message', function(data){
         $('body').empty();
         $('body').append('<h1><br/>'+data.msg+'</h1>');
       });
@@ -90,16 +101,26 @@
 
       });
 
-      function setupTouchControls() {
+      /**
+     * Listen for events targeted
+     * specically at this controller
+     * from the game. Useful for
+     * triggering sfx, game-states,
+     * alerts, secrets, etc.
+     */
+      socket.on('controller-event', function(data){
 
-        var touchControl = new VectorTouchController(socket);
-        touchControl.enable();
+        if (data.type === 'stun') {
 
-        //Uncomment to simulate random user input.
-        // touchControl.simulateUserInput();
+          playSnd('stun');
 
-      }
+        } else if (data.type === 'win') {
 
+          playSnd('winner');
+
+        }
+
+      });
 
       /**
      * Due to mobile limitations,
@@ -127,20 +148,12 @@
         document.removeEventListener( 'mouseup', initSounds, false );
 
       }
-
-      function play(sndId) {
+      function playSnd(sndId) {
         if (soundPlayer) {
           soundPlayer.play(sndId);
         }
       }
 
-      socket.on('stun-event', function(data){
-        play('stun');
-      });
-
-      socket.on('win-event', function(data){
-        play('winner');
-      });
 
     });
 

@@ -57,20 +57,16 @@
       });
 
       game.init($('#stage'));
-
-      //temp
       game.setCallbacks(onWin, onStun);
 
       function onWin(socketid) {
         //Emit winner's socket id
-        socket.emit('win-event', {'socketid':socketid} );
+        socket.emit('controller-event', {'type':'win', 'socketid':socketid} );
       }
       function onStun(socketid) {
         //Emit stunned user's socketid
-        socket.emit('stun-event', {'socketid':socketid} );
+        socket.emit('controller-event', {'type':'stun', 'socketid':socketid} );
       };
-
-
 
     });
 
