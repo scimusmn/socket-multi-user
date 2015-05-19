@@ -1,5 +1,8 @@
 function Game() {
 
+    var ROUND_DURATION = 75;
+    var LOBBY_DURATION = 45;
+
     var currentFrameRequest = 0;
     var flyers = [];
     var asteroids = [];
@@ -9,15 +12,11 @@ function Game() {
     var roundCountdown = -45;
     var winCallback;
     var stunCallback;
+    var trackCallbck;
 
     /* ============== */
     /* PUBLIC METHODS */
     /* ============== */
-
-    this.setCallbacks = function(win, stun){
-        winCallback = win;
-        stunCallback = stun;
-    };
 
     this.init = function(_stageDiv) {
 
@@ -26,49 +25,63 @@ function Game() {
 
     };
 
+    this.setCallbacks = function(win, stun, track){
+        winCallback = win;
+        stunCallback = stun;
+        trackCallback = track;
+    };
+
     this.start = function() {
 
         //Start game loop
         currentFrameRequest = window.requestAnimationFrame(gameLoop);
 
-        //Begin releasing asteroidss
+        //Begin releasing asteroids
         setInterval(function(){
 
-            if (flyers.length>0 && roundCountdown > 0) {
+            if (flyers.length > 0 && roundCountdown > 0) {
                 releaseAsteroid();
+
+                //Extra asteroids for more players
                 for (var i = 0; i < Math.floor(flyers.length/3); i++) {
+
                     releaseAsteroid();
+
                 }
+
             }
 
         }, 4500);
 
-        //Begin updating scoreboard
+        //Begin updating scoreboard & round countdowns
         setInterval(function(){
 
-            if (flyers.length>0) updateScoreboard();
+            if (flyers.length > 0) updateScoreboard();
 
             if (roundCountdown < 0) {
-                roundCountdown ++;
-                $("#round-countdown").text(Math.abs(roundCountdown));
-                if (roundCountdown === 0) {
-                    $("#new-round").hide();
-                    roundCountdown = 76;
-                    resetScoreboard();
-                }
-            } else if (roundCountdown > 0) {
-                roundCountdown --;
-                if (roundCountdown <= 15) $("#game-countdown").text(Math.abs(roundCountdown));
-                if (roundCountdown === 0) {
-                    $("#new-round").show();
-                    roundCountdown = -45;
-                    clearAsteroids();
-                    updateScoreboard();
-                    $("#game-countdown").text(" ");
 
-                    //Experiemental//Emit winner event when new person takes pt lead
-                    console.log("win: "+ flyers[0].nickname+" | "+flyers[0].socketid);
-                    if(winCallback) winCallback.call(undefined, flyers[0].socketid);
+                roundCountdown ++;
+
+                $("#round-countdown").text(Math.abs(roundCountdown));
+
+                if (roundCountdown === 0) {
+
+                    startRound();
+
+                }
+
+            } else if (roundCountdown > 0) {
+
+                roundCountdown--;
+
+                //Only display countdown below 15 seconds
+                if (roundCountdown <= 15) {
+                    $("#game-countdown").text(Math.abs(roundCountdown));
+                }
+
+                if (roundCountdown === 0) {
+
+                    endRound();
 
                 }
             }
@@ -79,8 +92,10 @@ function Game() {
 
     this.stop = function() {
 
-        //Start game loop
+        //Stop game loop
         window.cancelAnimationFrame(currentFrameRequest);
+
+        //TODO: If this ever gets used, stop all timers
 
     };
 
@@ -361,6 +376,52 @@ function Game() {
     function liftStun(flyer){
         flyer.stunned = false;
         TweenLite.set( $( flyer.div ), { css: { opacity:1 } } );
+    }
+
+    function startRound() {
+
+        //Hide new-round screen
+        $("#new-round").hide();
+        roundCountdown = ROUND_DURATION;
+
+        //Reset everyone's score
+        resetScoreboard();
+
+        //Dispatch game data for tracking
+        if(trackCallback){
+            var eventProps = {
+                numPlayers: flyers.length,
+                roundDuration: ROUND_DURATION
+            };
+            trackCallback.call(undefined, 'round-begin', eventProps);
+        }
+
+    }
+
+    function endRound() {
+
+        //Clear gameplay
+        //Show new-round screen
+        $("#new-round").show();
+        roundCountdown = -LOBBY_DURATION;
+        clearAsteroids();
+        updateScoreboard();
+        $("#game-countdown").text(" ");
+
+        //Emit win event
+        if(winCallback){
+            winCallback.call(undefined, flyers[0].socketid);
+        }
+
+        //Dispatch game data for tracking
+        if(trackCallback){
+            var eventProps = {
+                numPlayers: flyers.length,
+                highScore: flyers[0].score
+            };
+            trackCallback.call(undefined, 'round-complete', eventProps);
+        }
+
     }
 
     function updateScoreboard() {
