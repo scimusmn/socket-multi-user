@@ -13,6 +13,7 @@
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="../js/VectorTouchController.js"></script>
   <script src="js/vendor/jquery.touchglow.js"></script>
+  <script src="js/vendor/howler.min.js"></script>
 
   <script>
 
@@ -39,6 +40,7 @@
 
         var nickname = prompt("Welcome back! (User:"+data.userid+")\nEnter nickname.", '');
         data.nickname = nickname;
+        data.firstTime = false;
         register(data);
 
       }
@@ -47,13 +49,13 @@
 
         var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to mine asteroids. Enter nickname.", '');
         var data = {'nickname': nickname};
+        data.firstTime = true;
         register(data);
 
       }
 
       function register(data) {
 
-        console.log('register: '+data);
         data.usertype = 'client_controller';
         data.usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
         socket.emit('register', data);
@@ -61,6 +63,22 @@
         setupTouchControls();
 
       }
+
+      function setupTouchControls() {
+
+        var touchControl = new VectorTouchController(socket);
+        touchControl.enable();
+
+      }
+
+      /**
+     * Generalized message reciever
+     * to display full screen alerts
+     */
+      socket.on('alert-message', function(data){
+        $('body').empty();
+        $('body').append('<h1><br/>'+data.msg+'</h1>');
+      });
 
       /**
      * Listen for instruction from
@@ -83,15 +101,59 @@
 
       });
 
-      function setupTouchControls() {
+      /**
+     * Listen for events targeted
+     * specically at this controller
+     * from the game. Useful for
+     * triggering sfx, game-states,
+     * alerts, secrets, etc.
+     */
+      socket.on('controller-event', function(data){
 
-        var touchControl = new VectorTouchController(socket);
-        touchControl.enable();
+        if (data.type === 'stun') {
 
-        //Uncomment to simulate random user input.
-        // touchControl.simulateUserInput();
+          playSnd('stun');
+
+        } else if (data.type === 'win') {
+
+          playSnd('winner');
+
+        }
+
+      });
+
+      /**
+     * Due to mobile limitations,
+     * we must instantiate our
+     * sounds in a user-triggered
+     * function. Important: The
+     * 'buffer' parameter must
+     * be set to true for mobile.
+     */
+      var soundPlayer;
+      document.addEventListener( 'touchend', initSounds, false );
+      document.addEventListener( 'mouseup', initSounds, false );
+      function initSounds () {
+
+        soundPlayer = new Howl({
+          urls: ['sounds/sprite.mp3', 'sounds/sprite.ogg'],
+          buffer: true,
+          sprite: {
+            stun: [0, 635],
+            winner: [636, 4410]
+          }
+        });
+
+        document.removeEventListener( 'touchend', initSounds, false );
+        document.removeEventListener( 'mouseup', initSounds, false );
 
       }
+      function playSnd(sndId) {
+        if (soundPlayer) {
+          soundPlayer.play(sndId);
+        }
+      }
+
 
     });
 

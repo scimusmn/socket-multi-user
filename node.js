@@ -8,9 +8,10 @@ var uaParser = require('ua-parser');
 var Puid = require('puid');
 var puid = new Puid(true);
 
-var CLIENT_CONTROLLER = "client_controller";
-var CLIENT_SHARED_SCREEN = "client_shared_screen";
-var DEVICE_STORAGE_KEY = 'smm_player_data';
+var CLIENT_CONTROLLER = 'client_controller';
+var CLIENT_SHARED_SCREEN = 'client_shared_screen';
+var DEVICE_STORAGE_KEY = 'smm_player_profile';
+var clients = {};
 var sharedScreenSID;
 var sharedScreenConnected = false;
 
@@ -23,15 +24,15 @@ app.get('/', function (request, response){
 
     var userAgent = request.headers['user-agent'];
     var os = uaParser.parseOS(userAgent).toString();
-    //TODO: Serve warning page to any user on unsupported OS, browser, or device.
+    //TODO: Serve warning to any user on unsupported OS, browser, or device.
 
-    console.log("Serving controller.html to: ", os);
+    console.log('Serving controller.html to: ', os);
     response.sendFile(__dirname + '/controller.html');
 
 });
 app.get('/screen', function (request, response){
 
-    console.log("Serving screen.html");
+    console.log('Serving screen.html');
     response.sendFile(__dirname + '/screen.html');
 
 });
@@ -41,6 +42,7 @@ io.on('connection', function(socket){
 
     //Variables unique to this client
     var userid;
+    var socketid;
     var usertype;
     var nickname;
     var usercolor;
@@ -48,10 +50,11 @@ io.on('connection', function(socket){
     console.log('User has connected. Connection:', socket.request.connection._peername);
 
     //User registered
-    socket.on("register", function(data) {
+    socket.on('register', function(data) {
 
-        console.log("User has registered:", data.usertype, data.nickname);
+        console.log('User has registered:', data.usertype, data.nickname, data.userid);
 
+        socketid = socket.id;
         usertype = data.usertype;
         nickname = data.nickname;
         usercolor = data.usercolor;
@@ -70,19 +73,43 @@ io.on('connection', function(socket){
              * initial data store to device
              * using generated unique id.
              */
-            if (data.userid != undefined && data.userid != ''){
+            if (data.firstTime === false){
                 //Returning user
                 userid = data.userid;
+                /**
+                 * Ensure no other clients
+                 * have the same userid. If
+                 * they do, it's most likely
+                 * two tabs open on the same
+                 * browser/device, so we disconnect
+                 * the previous connection.
+                 */
+                 console.log('registered returning user '+ userid);
+                 var prevConnected = clients[userid];
+                 console.log('prevConnected: '+ prevConnected);
+                 if (prevConnected && prevConnected !== socket.id) {
+                    //TODO: Display "Disconnected" message on previous tab.
+                    console.log('Disconnecting redundant user socket: '+clients[userid]);
+                    prevConnected.emit('alert-message', {'msg': 'Whoops you disconnected! Reload page to join.'} );
+                    clients[userid].disconnect();
+                    delete clients[userid];
+                 }
+
             } else {
+                console.log('registered first time'+ userid);
                 //New user
                 userid = puid.generate();
                 var userData = createUserData();
                 socket.emit('store-local-data', {'key': DEVICE_STORAGE_KEY, 'dataString': userData});
             }
 
+            //Track clients' sockets so we can ensure only one socket per device.
+            clients[userid] = socket;
+
             //Alert shared screen of new player
             io.sockets.connected[sharedScreenSID].emit('add-player', {  'nickname' : nickname,
                                                                         'userid' : userid,
+                                                                        'socketid' : socketid,
                                                                         'usercolor' : usercolor
                                                                     });
 
@@ -107,6 +134,9 @@ io.on('connection', function(socket){
 
         }
 
+        //Stop tracking this socket
+        delete clients[userid];
+
     });
 
     //Controller vector update
@@ -124,6 +154,14 @@ io.on('connection', function(socket){
         if (!sharedScreenConnected) return;
         data.userid = userid;
         io.sockets.connected[sharedScreenSID].emit('control-tap', data );
+
+    });
+
+    //Forward events to specific controllers
+    socket.on('controller-event', function (data){
+
+        console.log('Forwarding controller-event of type: ' + data.type + ' to: ' + data.socketid);
+        io.sockets.connected[data.socketid].emit('controller-event', data );
 
     });
 
