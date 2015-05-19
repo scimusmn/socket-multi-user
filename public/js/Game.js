@@ -7,8 +7,6 @@ function Game() {
     var stageDiv = {};
     var stageBounds = {};
     var roundCountdown = -45;
-
-    //temp/experimental - trying to wire in sounds
     var winCallback;
     var stunCallback;
 
@@ -19,14 +17,14 @@ function Game() {
     this.setCallbacks = function(win, stun){
         winCallback = win;
         stunCallback = stun;
-    }
+    };
 
     this.init = function(_stageDiv) {
 
         stageDiv = _stageDiv;
         this.start();
 
-    }
+    };
 
     this.start = function() {
 
@@ -40,7 +38,7 @@ function Game() {
                 releaseAsteroid();
                 for (var i = 0; i < Math.floor(flyers.length/3); i++) {
                     releaseAsteroid();
-                };
+                }
             }
 
         }, 4500);
@@ -53,7 +51,7 @@ function Game() {
             if (roundCountdown < 0) {
                 roundCountdown ++;
                 $("#round-countdown").text(Math.abs(roundCountdown));
-                if (roundCountdown == 0) {
+                if (roundCountdown === 0) {
                     $("#new-round").hide();
                     roundCountdown = 76;
                     resetScoreboard();
@@ -61,7 +59,7 @@ function Game() {
             } else if (roundCountdown > 0) {
                 roundCountdown --;
                 if (roundCountdown <= 15) $("#game-countdown").text(Math.abs(roundCountdown));
-                if (roundCountdown == 0) {
+                if (roundCountdown === 0) {
                     $("#new-round").show();
                     roundCountdown = -45;
                     clearAsteroids();
@@ -77,21 +75,21 @@ function Game() {
 
         }, 1000);
 
-    }
+    };
 
     this.stop = function() {
 
         //Start game loop
         window.cancelAnimationFrame(currentFrameRequest);
 
-    }
+    };
 
     this.setBounds = function(x,y,w,h) {
 
         stageBounds = {left:x, ceil:y, floor:h, right:w};
         stageBounds.floor -= 46; //padding for flyer height
 
-    }
+    };
 
     this.addPlayer = function(data){
 
@@ -128,7 +126,7 @@ function Game() {
 
         flyers.push(newFlyer);
 
-    }
+    };
 
     this.removePlayer = function(data){
 
@@ -136,22 +134,22 @@ function Game() {
 
         //Remove flyer from both stage and game loop
         var flyer = lookupFlyer(data.userid);
-        if (flyer != undefined) $(flyer.div).remove();
+        if (flyer !== undefined) $(flyer.div).remove();
 
         for( i=flyers.length-1; i>=0; i--) {
             if( flyers[i].userid == data.userid ) flyers.splice(i,1);
         }
 
-    }
+    };
 
     this.controlVector = function(data) {
 
         // console.log('Game.controlVector by player: ' + data.nickname + ". Angle: " + data.angle + ". Magnitude: " + data.magnitude );
 
         var f = lookupFlyer(data.userid);
-        if (f==undefined) return;
+        if (f === undefined) return;
 
-        if (data.magnitude == 0) {
+        if (data.magnitude === 0) {
             //No acceleration
             f.gas = false;
             f.ax = f.ay = 0;
@@ -162,14 +160,14 @@ function Game() {
             f.ay = data.magnitude * Math.sin(data.angle) * 0.8;
         }
 
-    }
+    };
 
     this.controlTap = function(data) {
 
         console.log('Game.controlTap by player: ' + data.nickname );
 
         var f = lookupFlyer(data.userid);
-        if (f==undefined) return;
+        if (f === undefined) return;
         if (f.stunned) return;
 
         //Swing pick-ax
@@ -182,7 +180,7 @@ function Game() {
         //Stun others
         var didStun = attemptStun(f);
 
-    }
+    };
 
     /* =============== */
     /* PRIVATE METHODS */
@@ -193,21 +191,19 @@ function Game() {
         //Update game objects here...
         flyers.forEach(function(flyer){
 
-            if (flyer.stunned == true) {
+            if (flyer.stunned === true) {
                 //stunned flyer remains still
                 flyer.vx = 0;
                 flyer.vy = 0;
                 return; //skip to next flyer
             }
 
-            if (flyer.gas == true){
+            if (flyer.gas === true){
 
-                /*
                 flyer.count ++;
                 if (flyer.count%6 == 1) {
-                    releasePuff(flyer);
+                    // releasePuff(flyer);
                 }
-                */
 
                 $(flyer.div).children("#thrust").show();
 
@@ -279,8 +275,8 @@ function Game() {
         for( a=asteroids.length-1; a>=0; a--) {
 
             var ast = asteroids[a];
-            var aL = parseInt( $(ast.div).css('left') ) + (ast.diam*.5);
-            var aT = parseInt( $(ast.div).css('top') ) + (ast.diam*.5);
+            var aL = parseInt( $(ast.div).css('left'), 10) + (ast.diam * 0.5);
+            var aT = parseInt( $(ast.div).css('top'), 10) + (ast.diam * 0.5);
 
             if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1.25 ) {
 
@@ -291,14 +287,14 @@ function Game() {
                     //Normal asteroid requires one hit
                     goldMined = ast.gold;
                     ast.gold = 0;
-                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam*.5) + 8);
+                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam * 0.5) + 8);
 
                 } else {
 
                     //Monster asteroid requires multiple swings
                     goldMined = 10 + Math.ceil(Math.random()*15);
                     ast.gold -= goldMined;
-                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam*.5) - 5);
+                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam * 0.5) - 5);
 
                 }
 
@@ -336,13 +332,13 @@ function Game() {
         for( i=flyers.length-1; i>=0; i--) {
 
             //skip attacking flyer and stunned flyers
-            if (flyers[i].userid == attackingFlyer.userid || flyers[i].stunned == true){
+            if (flyers[i].userid == attackingFlyer.userid || flyers[i].stunned === true){
                 continue;
             }
 
             of = flyers[i];
-            oX = parseInt( $(of.div).css('left') );
-            oY = parseInt( $(of.div).css('top') );
+            oX = parseInt( $(of.div).css('left'), 10);
+            oY = parseInt( $(of.div).css('top'), 10);
 
             if ( dist( oX, oY, attackingFlyer.x, attackingFlyer.y ) < stunRadius ) {
 
@@ -350,10 +346,7 @@ function Game() {
                 of.stunned = true;
                 TweenMax.to( $( of.div ), 0.2, { css: { opacity:0.5 }, ease:Power2.easeInOut, repeat:12, yoyo:true, onComplete: liftStun, onCompleteParams:[of] } );
 
-                //Experiemental//Emit stun event to play sound on controller device
-                console.log("stun "+of.socketid);
                 if(stunCallback){
-                    console.log("s "+stunCallback);
                     stunCallback.call(undefined, of.socketid);
                 }
 
@@ -373,7 +366,7 @@ function Game() {
     function updateScoreboard() {
 
         //Sort by score
-        flyers.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score) } );
+        flyers.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score); } );
 
         if (roundCountdown > 0) {
             //OPTION: Could update in-game leaderboard here...
@@ -466,8 +459,8 @@ function Game() {
         $(stageDiv).append(aDiv);
 
         //Release point
-        var startX = Math.random()*(stageBounds.right-60)+30;
-        var startY = Math.random()*(stageBounds.floor-60)+30;
+        var startX = Math.random() * (stageBounds.right-60) + 30;
+        var startY = Math.random() * (stageBounds.floor-60) + 30;
         var startScale = Math.random()*0.5+0.5;
         if (Math.random() < 0.07) startScale = 3 + Math.random() * 2;//Monster asteroid!
         TweenLite.set( $( aDiv ), { css: { left:startX, top:startY, scale:startScale } } );
@@ -489,7 +482,7 @@ function Game() {
         for( a=asteroids.length-1; a>=0; a--) {
             var ast = asteroids[a];
             //Fade out
-            TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:Math.random()*.5, onComplete: removeElement, onCompleteParams:[ast.div] } );
+            TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:Math.random() * 0.5, onComplete: removeElement, onCompleteParams:[ast.div] } );
             //Remove from game loop
             asteroids.splice(a,1);
         }
@@ -510,10 +503,10 @@ function Game() {
     }
     function dist(x, y, x0, y0){
         return Math.sqrt((x -= x0) * x + (y -= y0) * y);
-    };
+    }
     function clamp(val, min, max) {
       return Math.min(Math.max(val, min), max);
-    };
+    }
     function roundToNearest(val, n){
         return n * Math.round(val/n);
     }

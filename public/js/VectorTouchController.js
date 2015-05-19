@@ -26,7 +26,7 @@ function VectorTouchController(socket) {
         document.addEventListener( 'touchcancel', touchEvent, false );
         document.addEventListener( 'touchmove', touchEvent, false );
 
-    }
+    };
 
     this.disable = function(){
 
@@ -39,7 +39,7 @@ function VectorTouchController(socket) {
         document.removeEventListener( 'touchcancel', touchEvent, false );
         document.removeEventListener( 'touchmove', touchEvent, false );
 
-    }
+    };
 
     function mousedown (event) {
 
@@ -50,7 +50,7 @@ function VectorTouchController(socket) {
 
     function mousemove (event) {
 
-        if (mouseIsDown == true) {
+        if (mouseIsDown === true) {
             inputMove(event.pageX, event.pageY);
         }
 
@@ -73,7 +73,7 @@ function VectorTouchController(socket) {
 
             inputStart(event.touches[0].pageX, event.touches[0].pageY);
 
-        } else if ( event.touches.length == 0 ) {
+        } else if ( event.touches.length === 0 ) {
 
             inputUp();
 
@@ -116,7 +116,7 @@ function VectorTouchController(socket) {
 
     function inputUp() {
 
-        if (magnitude == 0) {
+        if (magnitude === 0) {
 
           //Touch never moved. Was tap.
           socket.emit('control-tap', {});
@@ -165,7 +165,7 @@ function VectorTouchController(socket) {
 
         ctx.restore();
 
-    };
+    }
 
     function clearCanvas() {
         ctx.clearRect ( 0 , 0 , screenWidth, screenHeight );
@@ -180,8 +180,8 @@ function VectorTouchController(socket) {
 
         setInterval(function () {
 
-            simInputX = (Math.random() * screenWidth)*.25 + (screenWidth*.375);
-            simInputY = (Math.random() * screenHeight)*.25 + (screenHeight*.375);
+            simInputX = (Math.random() * screenWidth) * 0.25 + (screenWidth * 0.375);
+            simInputY = (Math.random() * screenHeight) * 0.25 + (screenHeight * 0.375);
             simInputVX = Math.random() * 10 - 5;
             simInputVY = Math.random() * 10 - 6; //slightly favor upwards
 
@@ -192,7 +192,7 @@ function VectorTouchController(socket) {
             simInputX += simInputVX;
             simInputY += simInputVY;
 
-            if (Math.random()>0.25){
+            if (Math.random() > 0.25){
                 //touchmove
                 inputMove(simInputX, simInputY);
             }else {
@@ -210,7 +210,7 @@ function VectorTouchController(socket) {
 
         }, 20);
 
-    }
+    };
 
     //Touchglow effect
     $('body').touchglow({
