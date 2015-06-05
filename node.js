@@ -23,17 +23,31 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function (request, response){
 
     var userAgent = request.headers['user-agent'];
-    var os = uaParser.parseOS(userAgent).toString();
+    var ua = uaParser.parseUA(userAgent).toString();// -> "Safari 5.0.1"
+    var os = uaParser.parseOS(userAgent).toString();// -> "iOS 5.1"
+    var device = uaParser.parseDevice(userAgent).toString();// -> "iPhone"
+
     //TODO: Serve warning to any user on unsupported OS, browser, or device.
 
-    console.log('Serving controller.html to: ', os);
+    console.log('Serving controller.html to: ', device, ' running ', ua, ' on ', os);
     response.sendFile(__dirname + '/controller.html');
+
+    //Send tracking event
+    sendKeenEvent('node-serve-controller', { 'userAgent': ua, 'operatingSystem': os, 'device': device} );
 
 });
 app.get('/screen', function (request, response){
 
     console.log('Serving screen.html');
     response.sendFile(__dirname + '/screen.html');
+
+    var userAgent = request.headers['user-agent'];
+    var ua = uaParser.parseUA(userAgent).toString();// -> "Safari 5.0.1"
+    var os = uaParser.parseOS(userAgent).toString();// -> "iOS 5.1"
+    var device = uaParser.parseDevice(userAgent).toString();// -> "iPhone"
+
+    //Send tracking event
+    sendKeenEvent('node-serve-screen', { 'userAgent': ua, 'operatingSystem': os, 'device': device} );
 
 });
 
@@ -90,7 +104,7 @@ io.on('connection', function(socket){
                  if (prevConnected && prevConnected !== socket.id) {
                     //TODO: Display "Disconnected" message on previous tab.
                     console.log('Disconnecting redundant user socket: '+clients[userid]);
-                    prevConnected.emit('alert-message', {'msg': 'Whoops you disconnected! Reload page to join.'} );
+                    prevConnected.emit('alert-message', {'message': 'Whoops you disconnected! Reload to play.'} );
                     clients[userid].disconnect();
                     delete clients[userid];
                  }
@@ -99,7 +113,7 @@ io.on('connection', function(socket){
                 console.log('registered first time'+ userid);
                 //New user
                 userid = puid.generate();
-                var userData = createUserData();
+                var userData = newUserData();
                 socket.emit('store-local-data', {'key': DEVICE_STORAGE_KEY, 'dataString': userData});
             }
 
@@ -160,17 +174,20 @@ io.on('connection', function(socket){
     //Forward events to specific controllers
     socket.on('controller-event', function (data){
 
-        console.log('Forwarding controller-event of type: ' + data.type + ' to: ' + data.socketid);
+        console.log('Forwarding controller-event: ' + data.type + ', to socket: ' + data.socketid);
         io.sockets.connected[data.socketid].emit('controller-event', data );
 
     });
 
-    function createUserData() {
+    function newUserData() {
 
         var dataObj = { 'userid' : userid,
                         'nickname' : nickname,
                         'usercolor' : usercolor
                         };
+
+        //Send tracking event
+        sendKeenEvent('node-new-user', dataObj );
 
         return JSON.stringify(dataObj);
 
@@ -185,3 +202,42 @@ http.listen(portNumber, function(){
     console.log('Listening to Node server on port ' + portNumber + '...');
 
 });
+
+
+//Keen.io tracking
+var Keen = require('keen-js');
+var keenKeys = require('./public/js/keen.js').getKeys();
+var keenClient = new Keen({
+    projectId: keenKeys.projectId,
+    writeKey: keenKeys.writeKey
+});
+
+/**
+* Track an event with keen.io
+*/
+function sendKeenEvent(eventType, eventObj) {
+
+    // Add a timestamp to event parameters
+    eventObj.keen = {
+        timestamp: new Date().toISOString()
+    };
+
+    // Send data, with some basic error reporting
+    if (typeof keenClient !== 'undefined') {
+
+      keenClient.addEvent(eventType, eventObj, function(err, res){
+        if (err) {
+          console.log('Keen - ' + eventObj + ' submission failed');
+        }
+        else {
+          console.log('Keen - ' + eventObj + ' event sent successfully');
+        }
+      });
+
+    } else {
+
+      console.log('WARNING: Keen unavailable.\nMake sure you have included the keen.js file.');
+
+    }
+
+}

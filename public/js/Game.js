@@ -12,7 +12,7 @@ function Game() {
     var roundCountdown = -45;
     var winCallback;
     var stunCallback;
-    var trackCallbck;
+    var trackCallback;
 
     /* ============== */
     /* PUBLIC METHODS */
@@ -120,6 +120,12 @@ function Game() {
         TweenLite.set( $( flyerDiv ), { css: { left:startX, top:startY } } );
         TweenLite.from( $( flyerDiv ), 1, { css: { scale:0 }, ease:Elastic.easeOut } );
 
+        //Flash colored ring around new player for a few seconds
+        var highlightRing = $('<div class="highlightRing" style="color:'+data.usercolor+';"></div>');
+        $(flyerDiv).append(highlightRing);
+        TweenMax.set( $( highlightRing ), { css: { opacity:0.0 } } );
+        TweenMax.to( $( highlightRing ), 0.2, { css: { opacity:1, scale:0.9 }, ease:Power1.easeOut, delay:0.3, repeat:11, yoyo:true, onComplete: removeElement, onCompleteParams:[highlightRing] } );
+
         //Add to game loop
         var newFlyer = {    'userid':data.userid,
                             'socketid':data.socketid,
@@ -217,7 +223,7 @@ function Game() {
 
                 flyer.count ++;
                 if (flyer.count%6 == 1) {
-                    // releasePuff(flyer);
+                    releasePuff(flyer);
                 }
 
                 $(flyer.div).children("#thrust").show();
@@ -251,6 +257,7 @@ function Game() {
             flyer.y += flyer.vy;
 
             //Keep on stage
+            /*
             if (flyer.y >= stageBounds.floor) {
                 flyer.y = stageBounds.floor;
                 flyer.vx *= 0.65;
@@ -258,6 +265,12 @@ function Game() {
             } else if (flyer.y <= stageBounds.ceil) {
                 flyer.y = stageBounds.ceil;
                 flyer.vy = 0;
+            }
+            */
+            if (flyer.y >= stageBounds.floor + 30) {
+                flyer.y = stageBounds.ceil - 70;
+            } else if (flyer.y <= stageBounds.ceil - 70) {
+                flyer.y = stageBounds.floor + 30;
             }
             if (flyer.x >= stageBounds.right) {
                 flyer.x = stageBounds.left;
@@ -417,7 +430,9 @@ function Game() {
         if(trackCallback){
             var eventProps = {
                 numPlayers: flyers.length,
-                highScore: flyers[0].score
+                winnerName: flyers[0].nickname,
+                highScore: flyers[0].score,
+                lowScore: flyers[flyers.length-1].score
             };
             trackCallback.call(undefined, 'round-complete', eventProps);
         }
@@ -450,44 +465,23 @@ function Game() {
     function releasePuff(flyer) {
 
         //Add to stage
-        var pDiv = $('<img class="puff" src="img/puff-small.png">');
+        // var pDiv = $('<img class="puff" src="img/puff-small.png">');
+        var pDiv = $('<div class="puff-ring" style="color:'+flyer.color+';"></div>');
         $(stageDiv).append(pDiv);
 
-        var tX = flyer.x - (flyer.ax * 5);
-        var tY = flyer.y + 35 - (flyer.ay * 4);
-        var power = Math.abs(flyer.ax) + Math.abs(flyer.ay);
+        var p = polarity(flyer.ax);
+        var tX = flyer.x + (p*-12) + 15;
+        var tY = flyer.y + 55;
 
         //Starting point
-        TweenLite.set( $( pDiv ), { css: { left:tX, top:tY, scale:0.3 } } );
+        TweenLite.set( $( pDiv ), { css: { opacity: 0.6, left:tX, top:tY, scale:0.6 } } );
 
-        //Target point
-        tX = tX - (flyer.ax * 15) + (Math.random() * 12 - 6);
-        tY = tY - (flyer.ay * 15) + (Math.random() * 12 - 6);
+        tX = tX - (flyer.ax * 25) + (Math.random() * 12 - 6);
+        tY = tY - (flyer.ay * 25) + (Math.random() * 12 - 6);
 
         //Scale and fade
-        TweenLite.to( $( pDiv ), 0.25, { css: { scale:0.85 + power + Math.random()*0.85, rotation:Math.random()*150-75, left:tX, top:tY}, ease:Power2.easeOut } );
-        TweenLite.to( $( pDiv ), 0.3, { css: { opacity:0 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
-
-    }
-
-    function releaseDropper(flyer) {
-
-        //Add to stage
-        var dDiv = $('<img class="puff" src="img/drop-small.png">');
-        $(stageDiv).append(dDiv);
-
-        var tX = flyer.x;
-        var tY = flyer.y;
-
-        //Starting point
-        TweenLite.set( $( dDiv ), { css: { left:tX, top:tY } } );
-
-        //Target point
-        tX = tX + (flyer.vx * 10);
-        tY = tY + 400;
-
-        //Scale and animated drop
-        TweenLite.to( $( dDiv ), 0.75, { css: { left:tX, top:tY }, ease:Power3.easeIn, onComplete: removeElement, onCompleteParams:[dDiv] } );
+        // TweenLite.to( $( pDiv ), 0.3, { css: { left:tX, top:tY }, ease:Power2.easeOut } );
+        TweenLite.to( $( pDiv ), 1, { css: { opacity:0.0, scale:0.1 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
 
     }
 
@@ -570,6 +564,13 @@ function Game() {
     }
     function roundToNearest(val, n){
         return n * Math.round(val/n);
+    }
+    function polarity(x) {
+        x = +x; // convert to a number
+        if (x === 0 || isNaN(x)) {
+            return x;
+        }
+        return x > 0 ? 1 : -1;
     }
 
 }

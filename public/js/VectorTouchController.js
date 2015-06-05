@@ -106,8 +106,8 @@ function VectorTouchController(socket) {
         magnitude = map(dist, 0, shortest, 0, 1);
 
         //Dispatch updated control vector
-        socket.emit('control-vector', {     'angle': angle,
-                                            'magnitude': magnitude
+        socket.emit('control-vector', {     'angle': angle.toFixed(4),
+                                            'magnitude': magnitude.toFixed(4)
                                         });
         //Draw UI
         drawUI(inputX, inputY);
@@ -146,8 +146,14 @@ function VectorTouchController(socket) {
         ctx.strokeStyle = '#ccc';
         ctx.stroke();
 
+        //Ring around center/origin
         ctx.beginPath();
         ctx.arc(centerX,centerY,8,0,2*Math.PI);
+        ctx.stroke();
+
+        //Ring around touch point
+        ctx.beginPath();
+        ctx.arc(tx,ty,8,0,2*Math.PI);
         ctx.stroke();
 
         ctx.save();
