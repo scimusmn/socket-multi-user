@@ -1,7 +1,7 @@
 function Game() {
 
     var ROUND_DURATION = 75;
-    var LOBBY_DURATION = 45;
+    var LOBBY_DURATION = 5;
 
     var currentFrameRequest = 0;
     var flyers = [];
@@ -9,7 +9,7 @@ function Game() {
     var droppers = [];
     var stageDiv = {};
     var stageBounds = {};
-    var roundCountdown = -45;
+    var roundCountdown = -LOBBY_DURATION;
     var winCallback;
     var stunCallback;
     var trackCallback;
@@ -185,8 +185,6 @@ function Game() {
 
     this.controlTap = function(data) {
 
-        console.log('Game.controlTap by player: ' + data.nickname );
-
         var f = lookupFlyer(data.userid);
         if (f === undefined) return;
         if (f.stunned) return;
@@ -196,7 +194,7 @@ function Game() {
         TweenMax.to( $( f.div ).children('#pick'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
 
         //Mine for gold
-        f.score += mineForGold(f.x+10, f.y+25, f.color);
+        f.score += mineForGold(f.x+20, f.y+31, f.color);
 
         //Stun others
         var didStun = attemptStun(f);
@@ -222,9 +220,9 @@ function Game() {
             if (flyer.gas === true){
 
                 flyer.count ++;
-                if (flyer.count%6 == 1) {
-                    releasePuff(flyer);
-                }
+                // if (flyer.count%13 == 1) {
+                //     releasePuff(flyer);
+                // }
 
                 $(flyer.div).children("#thrust").show();
 
@@ -257,16 +255,6 @@ function Game() {
             flyer.y += flyer.vy;
 
             //Keep on stage
-            /*
-            if (flyer.y >= stageBounds.floor) {
-                flyer.y = stageBounds.floor;
-                flyer.vx *= 0.65;
-                flyer.vy *= -0.3;
-            } else if (flyer.y <= stageBounds.ceil) {
-                flyer.y = stageBounds.ceil;
-                flyer.vy = 0;
-            }
-            */
             if (flyer.y >= stageBounds.floor + 30) {
                 flyer.y = stageBounds.ceil - 70;
             } else if (flyer.y <= stageBounds.ceil - 70) {
@@ -306,11 +294,11 @@ function Game() {
             var aL = parseInt( $(ast.div).css('left'), 10) + (ast.diam * 0.5);
             var aT = parseInt( $(ast.div).css('top'), 10) + (ast.diam * 0.5);
 
-            if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1.25 ) {
+            if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1 ) {
 
                 //Successful strike
 
-                if (ast.diam < 65) {
+                if (ast.diam < 200) {
 
                     //Normal asteroid requires one hit
                     goldMined = ast.gold;
@@ -466,7 +454,7 @@ function Game() {
 
         //Add to stage
         // var pDiv = $('<img class="puff" src="img/puff-small.png">');
-        var pDiv = $('<div class="puff-ring" style="color:'+flyer.color+';"></div>');
+        var pDiv = $('<div class="puff-ring" style="color:'+flyer.color+'; background-color:'+flyer.color+';"></div>');
         $(stageDiv).append(pDiv);
 
         var p = polarity(flyer.ax);
@@ -474,14 +462,14 @@ function Game() {
         var tY = flyer.y + 55;
 
         //Starting point
-        TweenLite.set( $( pDiv ), { css: { opacity: 0.6, left:tX, top:tY, scale:0.6 } } );
+        TweenLite.set( $( pDiv ), { css: { opacity: 0.35, left:tX, top:tY} } );
 
-        tX = tX - (flyer.ax * 25) + (Math.random() * 12 - 6);
-        tY = tY - (flyer.ay * 25) + (Math.random() * 12 - 6);
+        tX += Math.random() * 16 - 8;
+        tY += Math.random() * 10 - 5 + 10;
 
         //Scale and fade
-        // TweenLite.to( $( pDiv ), 0.3, { css: { left:tX, top:tY }, ease:Power2.easeOut } );
-        TweenLite.to( $( pDiv ), 1, { css: { opacity:0.0, scale:0.1 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
+        TweenLite.to( $( pDiv ), 0.15, { css: { left:tX, top:tY }, ease:Power3.easeOut } );
+        TweenLite.to( $( pDiv ), 0.2, { css: { opacity:0.0 }, ease:Power3.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
 
     }
 
@@ -507,25 +495,45 @@ function Game() {
 
     function releaseAsteroid() {
 
-        //add to stage
-        var ra = Math.ceil(Math.random()*3);
-        var aDiv = $('<div class="asteroid" style=""><img src="img/asteroid-dark.png"/><img src="img/a-gold-'+ra+'.png"/></div>');
+        //Add new asteroid to stage
+        var astType = '';
+        var diam = 0;
+        var goldNum = 1;
+        var r = Math.random();
+
+        if (r<0.5) {
+            astType = 'c';
+            goldNum = Math.ceil(Math.random()*3);
+            diam = 160;
+        } else if (r<0.85) {
+            astType = 'b';
+            diam = 150;
+        } else if (r<0.975) {
+            astType = 'd';
+            diam = 165;
+        } else {
+            astType = 'a';
+            diam = 490;
+        }
+
+        var aDiv = $('<div class="asteroid" style=""><img src="img/asteroids/'+astType+'-asteroid-dark.png"/><img src="img/asteroids/'+astType+'-gold-'+goldNum+'.png"/></div>');
 
         $(stageDiv).append(aDiv);
+
+        //Scale asteroids between 50-100% orig size
+        var scale = 0.5 + (Math.random() * 0.5);
+        diam *= scale;
 
         //Release point
         var startX = Math.random() * (stageBounds.right-60) + 30;
         var startY = Math.random() * (stageBounds.floor-60) + 30;
-        var startScale = Math.random()*0.5+0.5;
-        if (Math.random() < 0.07) startScale = 3 + Math.random() * 2;//Monster asteroid!
-        TweenLite.set( $( aDiv ), { css: { left:startX, top:startY, scale:startScale } } );
+        TweenLite.set( $( aDiv ), { css: {scale:scale, left:startX, top:startY } } );
 
-        var diam = Math.round(63 * startScale);
         var gold = roundToNearest(diam/2, 5);
 
         //Pop in
-        TweenLite.from( $( aDiv ), 1, { css: { scale:0 }, ease:Elastic.easeOut } );
-        TweenLite.from( $( aDiv ), 10, { css: { left:startX + (Math.random()*40-20), top:startY + (Math.random()*40-20), rotation:Math.random()*90-45 } } );
+        TweenLite.from( $( aDiv ), 1.5, { css: { scale:0, opacity:0 }, ease:Elastic.easeOut } );
+        TweenLite.from( $( aDiv ), 10, { css: { left:startX + (Math.random()*200-100), top:startY + (Math.random()*200-100), rotation:Math.random()*90-45 } } );
 
         var ast = {"div":aDiv, "goldDiv":aDiv.find('img').last(), "x":startX, "y":startY, "diam":diam, "gold":gold };
         asteroids.push(ast);

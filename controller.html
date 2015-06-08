@@ -39,7 +39,7 @@
       }
       if (localStorageAvailable() === false) {
         $('body').empty();
-        $('body').append('<h1><br/>Whoops!<br/>Unable to connect.</h1><br/><h3>Maybe your device is in private-browsing mode?</h3>');
+        $('body').append('<h1><br/>Whoops!<br/>Unable to connect.</h1><br/><h3>Make sure your device is not in private-browsing mode.</h3>');
         return;
       }
 
@@ -60,7 +60,7 @@
       function promptReturnUser(data) {
 
         var nickname = prompt("Welcome back! (User:"+data.userid+")\nEnter nickname.", '');
-        data.nickname = nickname;
+        data.nickname = sanitize(nickname);
         data.firstTime = false;
         register(data);
 
@@ -69,10 +69,29 @@
       function promptFirstTimer() {
 
         var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to mine asteroids. Enter nickname.", '');
+        nickame = sanitize(nickname);
         var data = {'nickname': nickname};
         data.firstTime = true;
         register(data);
 
+      }
+
+      function sanitize(nameStr) {
+
+        console.log('namesgalore');
+
+        console.log(nameStr);
+
+        //Max length : 15 chars
+        nameStr = nameStr.substring(0, 15);
+
+        //Strip out HTML
+        nameStr = $('<p>' + nameStr + '</p>').text();
+
+        //TODO:Profanity filter
+        console.log(nameStr);
+
+        return nameStr;
       }
 
       function register(data) {
