@@ -15,7 +15,13 @@ var clients = {};
 var sharedScreenSID;
 var sharedScreenConnected = false;
 
+//Search for '-port' flag
+//via command line, otherwise
+//default to port 3000.
 var portNumber = 3000;
+if(process.argv.indexOf("--port") != -1){
+    portNumber = process.argv[process.argv.indexOf("--port") + 1];
+}
 app.set('port', portNumber);
 app.use(express.static(path.join(__dirname, 'public')));
 
