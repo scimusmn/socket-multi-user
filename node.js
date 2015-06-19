@@ -2,7 +2,7 @@
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var io = require('socket.io')(http, {path: '/mine/socket.io'});
 var path = require('path');
 var uaParser = require('ua-parser');
 var Puid = require('puid');
@@ -23,10 +23,10 @@ if(process.argv.indexOf("--port") != -1){
     portNumber = process.argv[process.argv.indexOf("--port") + 1];
 }
 app.set('port', portNumber);
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/mine/', express.static(path.join(__dirname, 'public')));
 
 //Serve client files
-app.get('/', function (request, response){
+app.get('/mine/', function (request, response){
 
     var userAgent = request.headers['user-agent'];
     var ua = uaParser.parseUA(userAgent).toString();// -> "Safari 5.0.1"
@@ -42,7 +42,7 @@ app.get('/', function (request, response){
     sendKeenEvent('node-serve-controller', { 'userAgent': ua, 'operatingSystem': os, 'device': device} );
 
 });
-app.get('/screen', function (request, response){
+app.get('/mine/screen', function (request, response){
 
     console.log('Serving screen.html');
     response.sendFile(__dirname + '/screen.html');
