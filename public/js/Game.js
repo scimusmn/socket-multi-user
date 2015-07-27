@@ -111,7 +111,7 @@ function Game() {
         console.log('Game.addPlayer: ' + data.nickname );
 
         //Add new flyer div to stage
-        $(stageDiv).append('<div id="flyer_'+data.userid+'" class="flyer" ><p style="color:'+data.usercolor+';">'+data.nickname+'</p><img id="pick" src="img/pick-small.png"/><img id="thrust" src="img/thrust-small.png"/><img src="img/astro-small.png"/></div>');
+        $(stageDiv).append('<div id="flyer_'+data.userid+'" class="flyer" ><p style="color:'+data.usercolor+';">'+data.nickname+'</p><img id="fist" src="img/hero_fist.png"/><img id="idle" src="img/hero_idle.png"/><img id="fly" src="img/hero_fly.png"/></div>');
         var flyerDiv = $( '#flyer_'+data.userid );
 
         //Pop in
@@ -189,12 +189,12 @@ function Game() {
         if (f === undefined) return;
         if (f.stunned) return;
 
-        //Swing pick-ax
-        TweenLite.set( $( f.div ).children('#pick'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
-        TweenMax.to( $( f.div ).children('#pick'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
+        //Swing fist-ax
+        TweenLite.set( $( f.div ).children('#fist'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
+        TweenMax.to( $( f.div ).children('#fist'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
 
-        //Mine for gold
-        f.score += mineForGold(f.x+20, f.y+31, f.color);
+        //Destory asteroids
+        f.score += smashAsteroids(f.x+20, f.y+31, f.dir);
 
         //Stun others
         var didStun = attemptStun(f);
@@ -224,11 +224,12 @@ function Game() {
                 //     releasePuff(flyer);
                 // }
 
-                $(flyer.div).children("#thrust").show();
-
+                $(flyer.div).children("#fly").show();
+                $(flyer.div).children("#idle").hide();
             } else {
 
-                $(flyer.div).children("#thrust").hide();
+                $(flyer.div).children("#fly").hide();
+                $(flyer.div).children("#idle").show();
 
                 // Friction
                 flyer.vx *= 0.99;
@@ -284,9 +285,9 @@ function Game() {
 
     }
 
-    function mineForGold(mineX, mineY) {
+    function smashAsteroids(mineX, mineY, smashDir) {
 
-        var goldMined = 0;
+        var damageDealt = 0;
 
         for( a=asteroids.length-1; a>=0; a--) {
 
@@ -301,38 +302,38 @@ function Game() {
                 if (ast.diam < 200) {
 
                     //Normal asteroid requires one hit
-                    goldMined = ast.gold;
-                    ast.gold = 0;
-                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam * 0.5) + 8);
+                    damageDealt = ast.health;
+                    ast.health = 0;
+                    releasePoints(damageDealt, '#eee21c', aL - 10, aT - (ast.diam * 0.5) + 8);
 
                 } else {
 
                     //Monster asteroid requires multiple swings
-                    goldMined = 10 + Math.ceil(Math.random()*15);
-                    ast.gold -= goldMined;
-                    releasePoints(goldMined, '#eee21c', aL - 10, aT - (ast.diam * 0.5) - 5);
+                    damageDealt = 10 + Math.ceil(Math.random()*15);
+                    ast.health -= damageDealt;
+                    releasePoints(damageDealt, '#eee21c', aL - 10, aT - (ast.diam * 0.5) - 5);
 
                 }
 
-                if (ast.gold <= 0) {
-
-                    //hide gold
-                    $( ast.goldDiv ).hide();
+                if (ast.health <= 0) {
 
                     //remove from stage
-                    TweenLite.to( $( ast.div ), 0.5, { css: { opacity:0 }, delay:2, onComplete: removeElement, onCompleteParams:[ast.div] } );
+                    TweenLite.to( $( ast.div ), 0.25, { css: { opacity:0 }, onComplete: removeElement, onCompleteParams:[ast.div] } );
 
                     //remove from game loop
                     asteroids.splice(a,1);
 
+                    //animate explosion
+                    explodeAsteroid(aL - (ast.diam * 0.5), aT - (ast.diam * 0.25), ast.diam, smashDir);
+
                 }
 
-                return goldMined;
+                return damageDealt;
 
             }
         }
 
-        return goldMined;
+        return damageDealt;
 
     }
 
@@ -498,12 +499,12 @@ function Game() {
         //Add new asteroid to stage
         var astType = '';
         var diam = 0;
-        var goldNum = 1;
+        var healthNum = 1;
         var r = Math.random();
 
         if (r<0.5) {
             astType = 'c';
-            goldNum = Math.ceil(Math.random()*3);
+            healthNum = Math.ceil(Math.random()*3);
             diam = 160;
         } else if (r<0.85) {
             astType = 'b';
@@ -516,7 +517,7 @@ function Game() {
             diam = 490;
         }
 
-        var aDiv = $('<div class="asteroid" style=""><img src="img/asteroids/'+astType+'-asteroid-dark.png"/><img src="img/asteroids/'+astType+'-gold-'+goldNum+'.png"/></div>');
+        var aDiv = $('<div class="asteroid" style=""><img src="img/asteroids/'+astType+'-asteroid-dark.png"/></div>');
 
         $(stageDiv).append(aDiv);
 
@@ -529,14 +530,39 @@ function Game() {
         var startY = Math.random() * (stageBounds.floor-60) + 30;
         TweenLite.set( $( aDiv ), { css: {scale:scale, left:startX, top:startY } } );
 
-        var gold = roundToNearest(diam/2, 5);
+        var health = roundToNearest(diam/2, 5);
 
         //Pop in
         TweenLite.from( $( aDiv ), 1.5, { css: { scale:0, opacity:0 }, ease:Elastic.easeOut } );
         TweenLite.from( $( aDiv ), 10, { css: { left:startX + (Math.random()*200-100), top:startY + (Math.random()*200-100), rotation:Math.random()*90-45 } } );
 
-        var ast = {"div":aDiv, "goldDiv":aDiv.find('img').last(), "x":startX, "y":startY, "diam":diam, "gold":gold };
+        var ast = {"div":aDiv, "x":startX, "y":startY, "diam":diam, "health":health };
         asteroids.push(ast);
+
+    }
+
+    function explodeAsteroid(x, y, diam, dir) {
+
+        //Replace with chunks of asteroid dispersing
+        for (var i = 0; i < 5; i++) {
+            var astNum = Math.ceil(Math.random()*6);
+
+            var aDiv = $('<div class="asteroid" style=""><img src="img/asteroids/a'+astNum+'.png"/></div>');
+
+            $(stageDiv).append(aDiv);
+
+            //Starting point
+            var scale = Math.random() * 0.15 + 0.2;
+            if (diam > 300) scale *= 2;
+            TweenLite.set( $( aDiv ), { css: { left:x, top:y, scale:scale } } );
+
+            //Tween from center
+            TweenLite.to( $( aDiv ), 0.35, { css: { left:(x + Math.random()*300-150) + (dir*200), top:(y + Math.random()*300-150), rotation:Math.random()*250-125}, ease:Power3.easeOut } );
+
+            //Fade out and remove chunk
+            TweenLite.to( $( aDiv ), 0.3, { css: { opacity:0 }, delay:0.15, onComplete: removeElement, onCompleteParams:[aDiv] } );
+
+        }
 
     }
 

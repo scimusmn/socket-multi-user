@@ -7,6 +7,7 @@ var path = require('path');
 var uaParser = require('ua-parser');
 var Puid = require('puid');
 var puid = new Puid(true);
+var profanity = require('profanity-util');
 
 var CLIENT_CONTROLLER = 'client_controller';
 var CLIENT_SHARED_SCREEN = 'client_shared_screen';
@@ -76,7 +77,7 @@ io.on('connection', function(socket){
 
         socketid = socket.id;
         usertype = data.usertype;
-        nickname = data.nickname;
+        nickname = purifyName(data.nickname);
         usercolor = data.usercolor;
 
         if (usertype == CLIENT_SHARED_SCREEN) {
@@ -184,6 +185,18 @@ io.on('connection', function(socket){
         io.sockets.connected[data.socketid].emit('controller-event', data );
 
     });
+
+    function purifyName(nameStr) {
+
+        // check that string is not empty or full of spaces
+        if (/\S/.test(nameStr) && nameStr !== undefined) {
+            nameStr = profanity.purify(nameStr, { replace: 'true', replacementsList: [ 'PottyMouth', 'GutterMind', 'Turdington', 'DullMind', 'Blue' ] })[0];
+        } else {
+            nameStr = "Hero_" + Math.round(Math.random()*999);
+        }
+
+        return nameStr;
+    }
 
     function newUserData() {
 
