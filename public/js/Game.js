@@ -304,21 +304,21 @@ function Game() {
                     //Normal asteroid requires one hit
                     damageDealt = ast.health;
                     ast.health = 0;
-                    releasePoints(damageDealt, '#eee21c', aL - 10, aT - (ast.diam * 0.5) + 8);
+                    releasePoints(damageDealt, '#eee21c', aL - 10, aT - (ast.diam * 0.5) + 3, smashDir);
 
                 } else {
 
                     //Monster asteroid requires multiple swings
                     damageDealt = 10 + Math.ceil(Math.random()*15);
                     ast.health -= damageDealt;
-                    releasePoints(damageDealt, '#eee21c', aL - 10, aT - (ast.diam * 0.5) - 5);
+                    releasePoints(damageDealt, '#eee21c', aL - 10, aT - (ast.diam * 0.5) - 10, 0);
 
                 }
 
                 if (ast.health <= 0) {
 
                     //remove from stage
-                    TweenLite.to( $( ast.div ), 0.25, { css: { opacity:0 }, onComplete: removeElement, onCompleteParams:[ast.div] } );
+                    TweenLite.to( $( ast.div ), 0.3, { css: { opacity:0 }, onComplete: removeElement, onCompleteParams:[ast.div] } );
 
                     //remove from game loop
                     asteroids.splice(a,1);
@@ -474,7 +474,7 @@ function Game() {
 
     }
 
-    function releasePoints(val, col, x, y) {
+    function releasePoints(val, col, x, y, dir) {
 
         //add to stage
         var pDiv = $('<p class="points" style="color:'+col+';">+'+val+'</p>');
@@ -485,12 +485,12 @@ function Game() {
         TweenLite.set( $( pDiv ), { css: { left:x, top:y, scale:0.25 } } );
 
         //Target point
-        x += Math.random()*30-15;
+        x += Math.random()*80-40 + (dir * 115);
         y -= 45;
 
         //Scale and fade
-        TweenLite.to( $( pDiv ), 0.25, { css: { scale:1, left:x, top:y }, ease:Power3.easeOut } );
-        TweenLite.to( $( pDiv ), 0.5, { css: { opacity:0 }, ease:Power2.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
+        TweenLite.to( $( pDiv ), 0.35, { css: { scale:1, left:x, top:y }, ease:Power3.easeOut } );
+        TweenLite.to( $( pDiv ), 0.5, { css: { opacity:0 }, delay:0.35, ease:Power1.easeIn, onComplete: removeElement, onCompleteParams:[pDiv] } );
 
     }
 
@@ -557,10 +557,10 @@ function Game() {
             TweenLite.set( $( aDiv ), { css: { left:x, top:y, scale:scale } } );
 
             //Tween from center
-            TweenLite.to( $( aDiv ), 0.35, { css: { left:(x + Math.random()*300-150) + (dir*200), top:(y + Math.random()*300-150), rotation:Math.random()*250-125}, ease:Power3.easeOut } );
+            TweenLite.to( $( aDiv ), 0.4, { css: { left:(x + Math.random()*200-100) + (dir*100), top:(y + Math.random()*240-120), rotation:Math.random()*250-125}, ease:Power2.easeOut } );
 
             //Fade out and remove chunk
-            TweenLite.to( $( aDiv ), 0.3, { css: { opacity:0 }, delay:0.15, onComplete: removeElement, onCompleteParams:[aDiv] } );
+            TweenLite.to( $( aDiv ), 0.4, { css: { opacity:0 }, delay:0.1, onComplete: removeElement, onCompleteParams:[aDiv] } );
 
         }
 

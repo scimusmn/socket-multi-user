@@ -37,6 +37,8 @@
 .points{
     position: absolute;
     z-index: 3;
+    font-size: 2em;
+    font-weight: bold;
 }
 .asteroid,
 .asteroid img{
