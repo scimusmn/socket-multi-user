@@ -62,11 +62,19 @@
       });
 
       game.init($('#stage'));
-      game.setCallbacks(onWin, onStun, onTrackEvent);
+      game.setCallbacks(onWin, onLose, onPoints, onStun, onTrackEvent);
 
       function onWin(socketid) {
         //Emit winner's socket id
         socket.emit('controller-event', {'type':'win', 'socketid':socketid} );
+      }
+      function onLose(socketid) {
+        //Emit loser's socket id
+        socket.emit('controller-event', {'type':'lose', 'socketid':socketid} );
+      }
+      function onPoints(socketid) {
+        //Emit point-getter's socket id
+        socket.emit('controller-event', {'type':'points', 'socketid':socketid} );
       }
       function onStun(socketid) {
         //Emit stunned user's socketid

@@ -11,6 +11,8 @@ function Game() {
     var stageBounds = {};
     var roundCountdown = -LOBBY_DURATION;
     var winCallback;
+    var loseCallback;
+    var pointsCallback;
     var stunCallback;
     var trackCallback;
 
@@ -25,8 +27,10 @@ function Game() {
 
     };
 
-    this.setCallbacks = function(win, stun, track){
+    this.setCallbacks = function(win, lose, points, stun, track){
         winCallback = win;
+        loseCallback = lose;
+        pointsCallback = points;
         stunCallback = stun;
         trackCallback = track;
     };
@@ -193,8 +197,15 @@ function Game() {
         TweenLite.set( $( f.div ).children('#fist'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
         TweenMax.to( $( f.div ).children('#fist'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
 
-        //Destory asteroids
-        f.score += smashAsteroids(f.x+20, f.y+31, f.dir);
+        //Destroy asteroids
+        var pnts = smashAsteroids(f.x+20, f.y+31, f.dir);
+        if(pnts > 0) {
+            f.score += pnts;
+            //Emit points event to scorer
+            if(pointsCallback){
+                pointsCallback.call(undefined, f.socketid);
+            }
+        }
 
         //Stun others
         var didStun = attemptStun(f);
@@ -410,9 +421,16 @@ function Game() {
         updateScoreboard();
         $("#game-countdown").text(" ");
 
-        //Emit win event
+        //Emit win event to top-scorer
         if(winCallback){
             winCallback.call(undefined, flyers[0].socketid);
+        }
+
+        //Emit lose event to every other player
+        if(loseCallback){
+            for (var i = 1; i < flyers.length; i++) {
+                loseCallback.call(undefined, flyers[i].socketid);
+            }
         }
 
         //Dispatch game data for tracking
