@@ -1,7 +1,7 @@
 function Game() {
 
     var ROUND_DURATION = 75;
-    var LOBBY_DURATION = 5;
+    var LOBBY_DURATION = 15;
 
     var currentFrameRequest = 0;
     var flyers = [];
@@ -134,9 +134,10 @@ function Game() {
         var newFlyer = {    'userid':data.userid,
                             'socketid':data.socketid,
                             'div':flyerDiv,
+                            'flyDiv':$(flyerDiv).children("#fly"),
+                            'idleDiv':$(flyerDiv).children("#idle"),
                             'nickname':data.nickname,
                             'color':data.usercolor,
-                            'count':0,
                             'score':0,
                             'stunned':false,
                             'gas':false,
@@ -198,7 +199,7 @@ function Game() {
         TweenMax.to( $( f.div ).children('#fist'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
 
         //Destroy asteroids
-        var pnts = smashAsteroids(f.x+20, f.y+31, f.dir);
+        var pnts = smashAsteroids(f.x+17, f.y+25, f.dir);
         if(pnts > 0) {
             f.score += pnts;
             //Emit points event to scorer
@@ -230,17 +231,13 @@ function Game() {
 
             if (flyer.gas === true){
 
-                flyer.count ++;
-                // if (flyer.count%13 == 1) {
-                //     releasePuff(flyer);
-                // }
+                flyer.flyDiv.show();
+                flyer.idleDiv.hide();
 
-                $(flyer.div).children("#fly").show();
-                $(flyer.div).children("#idle").hide();
             } else {
 
-                $(flyer.div).children("#fly").hide();
-                $(flyer.div).children("#idle").show();
+                flyer.flyDiv.hide();
+                flyer.idleDiv.show();
 
                 // Friction
                 flyer.vx *= 0.99;
@@ -306,7 +303,7 @@ function Game() {
             var aL = parseInt( $(ast.div).css('left'), 10) + (ast.diam * 0.5);
             var aT = parseInt( $(ast.div).css('top'), 10) + (ast.diam * 0.5);
 
-            if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1 ) {
+            if ( dist( aL, aT, mineX, mineY ) < ast.diam * 1.15 ) {
 
                 //Successful strike
 
@@ -351,7 +348,7 @@ function Game() {
     function attemptStun(attackingFlyer) {
 
         var didStun = false;
-        var stunRadius = 40;
+        var stunRadius = 60;
 
         var of;
         var oX;
