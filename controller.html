@@ -14,6 +14,7 @@
   <script src="/mine/js/VectorTouchController.js"></script>
   <script src="/mine/js/vendor/jquery.touchglow.js"></script>
   <script src="/mine/js/vendor/howler.min.js"></script>
+  <script src="/mine/js/vendor/randomColor.min.js"></script>
 
   <script>
 
@@ -59,7 +60,8 @@
 
       function promptReturnUser(data) {
 
-        var nickname = prompt("Welcome back! (User:"+data.userid+")\nEnter nickname.", '');
+        var nickname = prompt("Welcome back!\nEnter nickname.", ''); // (User:"+data.userid+")\nEnter nickname.
+
         data.nickname = sanitize(nickname);
         data.firstTime = false;
         register(data);
@@ -78,18 +80,11 @@
 
       function sanitize(nameStr) {
 
-        console.log('namesgalore');
-
-        console.log(nameStr);
-
-        //Max length : 15 chars
-        nameStr = nameStr.substring(0, 15);
+        //Max length : 13 chars
+        nameStr = nameStr.substring(0, 13);
 
         //Strip out HTML
         nameStr = $('<p>' + nameStr + '</p>').text();
-
-        //TODO:Profanity filter
-        console.log(nameStr);
 
         return nameStr;
       }
@@ -97,7 +92,7 @@
       function register(data) {
 
         data.usertype = 'client_controller';
-        data.usercolor = '#'+Math.floor(Math.random()*16777215).toString(16);
+        data.usercolor = randomColor();
         socket.emit('register', data);
 
         setupTouchControls();
@@ -154,9 +149,17 @@
 
           playSound('stun');
 
+        } else if (data.type === 'points') {
+
+          playSound('points');
+
         } else if (data.type === 'win') {
 
           playSound('winner');
+
+        } else if (data.type === 'lose') {
+
+          playSound('loser'+Math.ceil(Math.random()*3));
 
         }
 
@@ -179,8 +182,14 @@
           urls: ['sounds/sounds.mp3', 'sounds/sounds.ogg'],
           buffer: true,
           sprite: {
-            stun: [0, 1022],
-            winner: [1023, 6818]
+
+            winner: [1, 4467],
+            points: [4468, 841],
+            stun:   [6009, 2338],
+            loser1: [8340, 1303],
+            loser2: [9644, 1126],
+            loser3: [10771, 1272]
+
           }
         });
 
@@ -190,6 +199,7 @@
       }
       function playSound(sndId) {
         if (soundPlayer) {
+          console.log("play", sndId);
           soundPlayer.play(sndId);
         }
       }
@@ -199,7 +209,7 @@
   </script>
 
   <body>
-    <br/><h3 id="instruct" style="pointer-events:none;">Touch and drag to move.<br/>Tap to mine.</h3>
+    <br/><h3 id="instruct" style="pointer-events:none;">Touch and drag to move.<br/>Tap to smash.</h3>
     <canvas id="canvas"></canvas>
   </body>
 
