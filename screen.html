@@ -5,25 +5,25 @@
   </head>
 
   <!-- CSS -->
-  <link rel="stylesheet" type="text/css" href="/mine/css/screen.css">
-  <link rel="stylesheet" type="text/css" href="/mine/css/game.css">
+  <link rel="stylesheet" type="text/css" href="/smash/css/screen.css">
+  <link rel="stylesheet" type="text/css" href="/smash/css/game.css">
 
   <!-- JS -->
-  <script src="/mine/socket.io/socket.io.js"></script>
+  <script src="/smash/socket.io/socket.io.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-  <script src="/mine/js/Game.js"></script>
+  <script src="/smash/js/Game.js"></script>
   <script type="text/javascript">
   !function(a,b){a("Keen","https://d26b395fwzu5fz.cloudfront.net/3.2.4/keen.min.js",b)}(function(a,b,c){var d,e,f;c["_"+a]={},c[a]=function(b){c["_"+a].clients=c["_"+a].clients||{},c["_"+a].clients[b.projectId]=this,this._config=b},c[a].ready=function(b){c["_"+a].ready=c["_"+a].ready||[],c["_"+a].ready.push(b)},d=["addEvent","setGlobalProperties","trackExternalLink","on"];for(var g=0;g<d.length;g++){var h=d[g],i=function(a){return function(){return this["_"+a]=this["_"+a]||[],this["_"+a].push(arguments),this}};c[a].prototype[h]=i(h)}e=document.createElement("script"),e.async=!0,e.src=b,f=document.getElementsByTagName("script")[0],f.parentNode.insertBefore(e,f)},this);
   </script>
-  <script src="/mine/js/keen.js"></script>
+  <script src="/smash/js/keen.js"></script>
 
 
   <script>
 
     $(document).ready(function(){
 
-      var socket = io.connect('', {path: "/mine/socket.io"});
+      var socket = io.connect('', {path: "/smash/socket.io"});
       var game = new Game();
 
       //Let socket.io know this is the shared screen client
@@ -119,12 +119,12 @@
   </script>
 
   <body>
-    <img src='/mine/img/background.jpg'/>
+    <img src='/smash/img/background.jpg'/>
     <ul id="messages"></ul>
     <div id="stage"></div>
     <h2 id="game-countdown"></h2>
     <div id="new-round">
-      <img src="/mine/img/new-round-screen.png"/>
+      <img src="/smash/img/new-round-screen.png"/>
       <h2 id="round-countdown">XX</h2>
       <ul id="player-list">
         <li>No players have joined</li>

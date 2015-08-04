@@ -6,21 +6,21 @@
   </head>
 
   <!-- CSS -->
-  <link rel="stylesheet" type="text/css" href="/mine/css/controller.css">
+  <link rel="stylesheet" type="text/css" href="/smash/css/controller.css">
 
   <!-- JS -->
-  <script src="/mine/socket.io/socket.io.js"></script>
+  <script src="/smash/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-  <script src="/mine/js/VectorTouchController.js"></script>
-  <script src="/mine/js/vendor/jquery.touchglow.js"></script>
-  <script src="/mine/js/vendor/howler.min.js"></script>
-  <script src="/mine/js/vendor/randomColor.min.js"></script>
+  <script src="/smash/js/VectorTouchController.js"></script>
+  <script src="/smash/js/vendor/jquery.touchglow.js"></script>
+  <script src="/smash/js/vendor/howler.min.js"></script>
+  <script src="/smash/js/vendor/randomColor.min.js"></script>
 
   <script>
 
     $(document).ready(function(){
 
-      var socket = io.connect('', {path: "/mine/socket.io"});
+      var socket = io.connect('', {path: "/smash/socket.io"});
 
      /**
       * Check if this device allows
@@ -70,7 +70,7 @@
 
       function promptFirstTimer() {
 
-        var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to mine asteroids. Enter nickname.", '');
+        var nickname = prompt("Welcome! Touch and drag to move your character. Tap screen to smash asteroids. Enter nickname.", '');
         nickame = sanitize(nickname);
         var data = {'nickname': nickname};
         data.firstTime = true;
