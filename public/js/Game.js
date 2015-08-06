@@ -1,7 +1,7 @@
 function Game() {
 
     var ROUND_DURATION = 75;
-    var LOBBY_DURATION = 41;
+    var LOBBY_DURATION = 35;
 
     var currentFrameRequest = 0;
     var flyers = [];
@@ -393,6 +393,7 @@ function Game() {
         //Hide new-round screen
         $("#new-round").hide();
         $("#join-msg").show();
+        TweenMax.to( $("#join-msg"), 7.3, { css: { bottom:130 }, ease:Power2.easeInOut, repeat:99, yoyo:true } );
         roundCountdown = ROUND_DURATION;
 
         //Reset everyone's score
