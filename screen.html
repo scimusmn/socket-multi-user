@@ -32,6 +32,11 @@
       socket.on('add-player', function(data){
 
         // $('#messages').append($('<li>').html('<span style="color:'+data.usercolor+';">'+ data.nickname+'</span> has joined.'));
+
+        // Quick hack to shorten names
+        // TODO - Fix later
+        var newName = data.nickname.substring(0,15);
+        data.nickname = newName;
         game.addPlayer(data);
 
       });
