@@ -1,7 +1,7 @@
 function Game() {
 
     var ROUND_DURATION = 75;
-    var LOBBY_DURATION = 15;
+    var LOBBY_DURATION = 30;
 
     var currentFrameRequest = 0;
     var flyers = [];
@@ -194,19 +194,12 @@ function Game() {
         if (f === undefined) return;
         if (f.stunned) return;
 
-        //Swing fist-ax
+        //Swing fist
         TweenLite.set( $( f.div ).children('#fist'), { css: { rotation: -60 * f.dir, opacity: 1, transformOrigin:"50% 100% 0" } });
         TweenMax.to( $( f.div ).children('#fist'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
 
         //Destroy asteroids
-        var pnts = smashAsteroids(f.x+17, f.y+25, f.dir);
-        if(pnts > 0) {
-            f.score += pnts;
-            //Emit points event to scorer
-            if(pointsCallback){
-                pointsCallback.call(undefined, f.socketid);
-            }
-        }
+        f.score += smashAsteroids(f.x+17, f.y+25, f.dir);
 
         //Stun others
         var didStun = attemptStun(f);
@@ -348,7 +341,7 @@ function Game() {
     function attemptStun(attackingFlyer) {
 
         var didStun = false;
-        var stunRadius = 60;
+        var stunRadius = 70;
 
         var of;
         var oX;
