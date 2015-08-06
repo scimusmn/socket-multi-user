@@ -158,9 +158,9 @@
           playSound('winner');
 
         } else if (data.type === 'lose') {
-
-          playSound('loser'+Math.ceil(Math.random()*3));
-
+          setTimeout(function () {
+            playSound('loser'+Math.ceil(Math.random()*3));
+          }, 5000);
         }
 
       });

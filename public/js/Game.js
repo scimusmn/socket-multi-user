@@ -1,7 +1,7 @@
 function Game() {
 
     var ROUND_DURATION = 75;
-    var LOBBY_DURATION = 30;
+    var LOBBY_DURATION = 31;
 
     var currentFrameRequest = 0;
     var flyers = [];
