@@ -248,7 +248,7 @@ function Game() {
 
                 flyer.deadCount++;
 
-                if (flyer.deadCount > 1000) {
+                if (flyer.deadCount > 8000) {
                     //Assume player has lost connection. Remove from game.
                     //Emit disconnect event to node
                     if(onForceDisconnectCallback){
