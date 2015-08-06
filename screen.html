@@ -67,8 +67,12 @@
       });
 
       game.init($('#stage'));
-      game.setCallbacks(onWin, onLose, onPoints, onStun, onTrackEvent);
+      game.setCallbacks(onForceDisconnect, onWin, onLose, onPoints, onStun, onTrackEvent);
 
+      function onForceDisconnect(userid) {
+        //Emit idle player's socket id
+        socket.emit('force-disconnect', {'userid':userid} );
+      }
       function onWin(socketid) {
         //Emit winner's socket id
         socket.emit('controller-event', {'type':'win', 'socketid':socketid} );

@@ -10,6 +10,7 @@ function Game() {
     var stageDiv = {};
     var stageBounds = {};
     var roundCountdown = -LOBBY_DURATION;
+    var onForceDisconnectCallback;
     var winCallback;
     var loseCallback;
     var pointsCallback;
@@ -27,7 +28,8 @@ function Game() {
 
     };
 
-    this.setCallbacks = function(win, lose, points, stun, track){
+    this.setCallbacks = function(forceDisconnect, win, lose, points, stun, track){
+        onForceDisconnectCallback = forceDisconnect;
         winCallback = win;
         loseCallback = lose;
         pointsCallback = points;
@@ -138,6 +140,7 @@ function Game() {
                             'idleDiv':$(flyerDiv).children("#idle"),
                             'nickname':data.nickname,
                             'color':data.usercolor,
+                            'deadCount': 0,
                             'score':0,
                             'stunned':false,
                             'gas':false,
@@ -233,6 +236,7 @@ function Game() {
 
                 flyer.flyDiv.show();
                 flyer.idleDiv.hide();
+                deadCount = 0;
 
             } else {
 
@@ -242,6 +246,18 @@ function Game() {
                 // Friction
                 flyer.vx *= 0.99;
 
+                flyer.deadCount++;
+
+                if (flyer.deadCount > 1000) {
+                    //Assume player has lost connection. Remove from game.
+                    //Emit disconnect event to node
+                    if(onForceDisconnectCallback){
+                        console.log("disconnect userid:"+flyer.userid);
+                        onForceDisconnectCallback.call(undefined, flyer.userid);
+                    }
+
+                    return;
+                }
             }
 
             //Apply acceleration

@@ -160,6 +160,20 @@ io.on('connection', function(socket){
 
     });
 
+    //Force specific client to disconnect
+    socket.on('force-disconnect', function (data){
+
+        if (!sharedScreenSID) return;
+        console.log('Removing client due to inactivity: ' + data.userid);
+        io.sockets.connected[sharedScreenSID].emit('remove-player', {   'nickname':'idlePlayer',
+                                                                        'userid':data.userid
+                                                                    });
+
+        //Stop tracking this socket
+        delete clients[data.userid];
+
+    });
+
     //Controller vector update
     socket.on('control-vector', function(data){
 
