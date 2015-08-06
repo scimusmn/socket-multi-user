@@ -35,8 +35,8 @@ body {
 
 #join-msg{
     position: fixed;
-    text-align: left;
-    left: 30px;
+    text-align: center;
+    left: 260px;
     bottom: 20px;
     font-size: 2.5em;
     color: #ddd;

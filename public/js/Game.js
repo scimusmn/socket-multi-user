@@ -392,6 +392,7 @@ function Game() {
 
         //Hide new-round screen
         $("#new-round").hide();
+        $("#join-msg").show();
         roundCountdown = ROUND_DURATION;
 
         //Reset everyone's score
@@ -413,6 +414,7 @@ function Game() {
         //Clear gameplay
         //Show new-round screen
         $("#new-round").show();
+        $("#join-msg").hide();
         roundCountdown = -LOBBY_DURATION;
         clearAsteroids();
         updateScoreboard();
