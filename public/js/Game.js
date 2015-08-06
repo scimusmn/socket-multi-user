@@ -1,7 +1,7 @@
 function Game() {
 
     var ROUND_DURATION = 75;
-    var LOBBY_DURATION = 31;
+    var LOBBY_DURATION = 41;
 
     var currentFrameRequest = 0;
     var flyers = [];
@@ -199,7 +199,14 @@ function Game() {
         TweenMax.to( $( f.div ).children('#fist'), 0.4, { css: { rotation: 330 * f.dir, opacity: 0 }, ease: Power3.easeOut });
 
         //Destroy asteroids
-        f.score += smashAsteroids(f.x+17, f.y+25, f.dir);
+        var pnts = smashAsteroids(f.x+17, f.y+25, f.dir);
+        if(pnts > 0) {
+            f.score += pnts;
+            //Emit points event to scorer
+            if(pointsCallback){
+                pointsCallback.call(undefined, f.socketid);
+            }
+        }
 
         //Stun others
         var didStun = attemptStun(f);
@@ -462,7 +469,6 @@ function Game() {
     function releasePuff(flyer) {
 
         //Add to stage
-        // var pDiv = $('<img class="puff" src="img/puff-small.png">');
         var pDiv = $('<div class="puff-ring" style="color:'+flyer.color+'; background-color:'+flyer.color+';"></div>');
         $(stageDiv).append(pDiv);
 
