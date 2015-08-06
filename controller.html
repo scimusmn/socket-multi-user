@@ -81,12 +81,12 @@
       function sanitize(nameStr) {
 
         //Max length : 13 chars
-        nameStr = nameStr.substring(0, 13);
+        var name = nameStr.substring(0, 15);
 
         //Strip out HTML
-        nameStr = $('<p>' + nameStr + '</p>').text();
+        var strippedName = $('<p>' + name + '</p>').text();
 
-        return nameStr;
+        return strippedName;
       }
 
       function register(data) {
